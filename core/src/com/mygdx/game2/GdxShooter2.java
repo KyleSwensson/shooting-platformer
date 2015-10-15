@@ -284,12 +284,20 @@ public class GdxShooter2 extends ApplicationAdapter {
 					robot.flying = false;
 					enemies.add(robot);
 				} else if (levelMap[i][p] == 9) {
-					ShootingGuy enemy = new ShootingGuy();
+
+					SmartEnemy enemy = new SmartEnemy();
 					enemy.x = i * 32 + 100;
 					enemy.y = -p * 32 + (levelMap[1].length * 32);
 					enemy.width = 32;
 					enemy.height = 32;
 					enemies.add(enemy);
+					/*
+					ShootingGuy enemy = new ShootingGuy();
+					enemy.x = i * 32 + 100;
+					enemy.y = -p * 32 + (levelMap[1].length * 32);
+					enemy.width = 32;
+					enemy.height = 32;
+					enemies.add(enemy);*/
 				} else if (levelMap[i][p] == 99) {
 					endGate = new Gate(i * 32 + 100,
 							-p * 32 + (levelMap[1].length * 32));
@@ -656,12 +664,13 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 		for (int i = 0; i < playerBullets.size;){
 			PlayerBullet bullet = playerBullets.get(i);
-			bullet.update(baseTiles, enemies, anims);
+			bullet.update(playerBullets,baseTiles, enemies, anims);
 
-			if (bullet.destroyed){
+			if (bullet.getDestroyed()){
 				int lastBullet = playerBullets.size-1;
 				playerBullets.set(i, playerBullets.get(lastBullet));
 				playerBullets.removeIndex(lastBullet);
+
 			} else {
 				i++;
 			}

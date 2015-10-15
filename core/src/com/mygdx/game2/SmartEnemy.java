@@ -23,7 +23,6 @@ public class SmartEnemy extends Enemy {
 
     boolean destroyed = false;
 
-    boolean canJump = false;
 
     Random random = new Random();
 
@@ -36,12 +35,34 @@ public class SmartEnemy extends Enemy {
     int shootTime = 20; // when isShooting goes down to 0 then shoots then isnt shooting anymore
 
 
+    boolean canJump = false;
+
     boolean turnRectCollided;
+    boolean jumpRectCollided;
+    boolean jumpHeightRectCollided;
     Rectangle turnAroundRect = new Rectangle(0,0,25,25); // rectangle that is 1 robot width to the direction the robot is moving and 1 robot width down
     //if it is not intersecting any blocks thenthe robot will fall off edge soon so turn around
+    Rectangle jumpRect = new Rectangle(0,0,25,25); // rectangle that is 1.5 robot widths to the direction the robot is moving, if there is a block there
+    //then the robot will jump
+    Rectangle jumpHeightRect = new Rectangle(0,0,25,25); //rectangle that is jump height above jump rect which tells the robot if there is a place
+    // to land when it jumps
 
 
 
+    public void jump() {
+        if (canJump) {
+            this.y += 5;
+            this.velY = 8;
+            canJump = false;
+        }
+    }
+    public void shortJump() {
+        if (canJump) {
+            this.y += 3;
+            this.velY = 4;
+            canJump = false;
+        }
+    }
 
     public void update(Array<EnemyBullet> enemyBullets, Array<PlayerBullet> bullets,Array<Item> items, Array<BaseTile> baseTiles, Array<Particle> particle1s, int playerX, int playerY) {
         xDist = Math.abs(playerX - this.x);
@@ -55,22 +76,40 @@ public class SmartEnemy extends Enemy {
 
             if (facingRight) {
                 turnAroundRect.x = x + 50;
+                jumpRect.x = x + 50;
+                jumpHeightRect.x = x + 50;
             } else {
                 turnAroundRect.x = x - 50;
+                jumpRect.x = x - 50;
+                jumpHeightRect.x = x -50;
             }
             turnAroundRect.y = y - 32 / 2;
+            jumpRect.y = y;
+            jumpHeightRect.y = y + 120;
 
             turnRectCollided = false;
+            jumpRectCollided = false;
+            jumpHeightRectCollided = false;
             for (BaseTile tile : baseTiles) {
                 if (turnAroundRect.overlaps(tile.rect)) {
                     turnRectCollided = true;
                 }
+                if (jumpRect.overlaps(tile.rect)) {
+                    jumpRectCollided = true;
+                }
+                if (jumpHeightRect.overlaps(tile.rect)) {
+                    jumpHeightRectCollided = true;
+                }
             }
-            if (turnRectCollided) {
-                onEdge = false;
-            } else {
+            onEdge = false;
+            if (!turnRectCollided) {
+                shortJump();
+            } else if (jumpRectCollided && !jumpHeightRectCollided) {
+                jump();
+            } else if (jumpRectCollided && jumpHeightRectCollided) {
                 onEdge = true;
             }
+
 
             moveEnemy(playerX, enemyBullets);
 
@@ -176,12 +215,12 @@ public class SmartEnemy extends Enemy {
     }
 
     private void moveEnemy(int playerX, Array<EnemyBullet> enemyBullets) {
-        if (!isShooting) {
-            if (playerX > this.x) {
-                facingRight = true;
+
+            if (onEdge && canJump) facingRight = !facingRight;
+
+            if (facingRight) {
                 velX += 1;
             } else {
-                facingRight = false;
                 velX -= 1;
             }
 
@@ -189,35 +228,11 @@ public class SmartEnemy extends Enemy {
             if (velX > 3) velX = 3;
             else if (velX < -3) velX = -3;
 
-            if (onEdge) {
-                velX = 0;
-            }
 
-            if (timeUntilShoot > 0) {
-                timeUntilShoot--;
-            } else {
-                timeUntilShoot = 100;
-                isShooting = true;
-            }
 
-        } else {
-            if (shootTime > 0) {
-                velX = 0;
-                shootTime --;
-            } else {
-                BigAuraBullet bul = new BigAuraBullet();
-                bul.x = this.x;
-                bul.y = this.y + 25;
 
-                bul.velX = 0;
-                bul.velY = 2;
-                enemyBullets.add(bul);
-                shootTime = 50;
-                timeUntilShoot = 300;
-                velX = 0;
-                isShooting = false;
-            }
-        }
+
+
     }
 
     public boolean getDestroyed() {

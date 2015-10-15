@@ -24,7 +24,11 @@ public abstract class PlayerBullet extends Bullet {
 
     }
 
-    public void update(Array<BaseTile> baseTiles, Array<Enemy> enemies, Array<Animation> anims) {
+    public boolean getDestroyed() {
+        return destroyed;
+    }
+
+    public void update(Array<PlayerBullet> playerBullets, Array<BaseTile> baseTiles, Array<Enemy> enemies, Array<Animation> anims) {
         this.x += velX;
         this.y += velY;
         timeActive++;

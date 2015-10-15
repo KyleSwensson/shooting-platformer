@@ -12,8 +12,8 @@ public class PlayerFire extends PlayerBullet {
     public PlayerFire () {
         //texture = new Texture("fireParticle.png");
     }
-    public void update(Array<BaseTile> baseTiles, Array<Enemy> enemies, Array<Animation> anims) {
-        super.update(baseTiles, enemies, anims);
+    public void update(Array<PlayerBullet> playerBullets,Array<BaseTile> baseTiles, Array<Enemy> enemies , Array<Animation> anims) {
+        super.update(playerBullets,baseTiles, enemies, anims);
 
 
         if (velX > 0) velX -= .1;

@@ -57,6 +57,7 @@ public class Player extends Character {
     final int flameSpawnTime = 1;
     final int machineSpawnTime = 5;
     final int cannonSpawnTime = 25;
+    final int rocketSpawnTime = 50;
 
 
     Boolean touchingGround = false;
@@ -120,7 +121,7 @@ public class Player extends Character {
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
             gunType ++;
-            if (gunType > 4) gunType = 1;
+            if (gunType > 5) gunType = 1;
         }
 
         if (touchingGround) {
@@ -509,6 +510,32 @@ public class Player extends Character {
                     }
                 }
 
+            } else if (gunType == 5) {
+                if (bulletSpawnCounter > rocketSpawnTime) {
+                    shakeFrames = 6;
+                    bulletSpawnCounter = 0;
+                    //TODO: make rocket spawn
+                    if (facingRight) {
+                        Rocket bullet = new Rocket();
+                        bullet.x = this.x;
+                        bullet.y = this.y + 8;
+                        bullet.velX = 12;
+                        bullet.bulletType = "Rocket";
+                        bullet.facingRight = true;
+                        bullets.add(bullet);
+                    } else {
+                        Rocket bullet = new Rocket();
+                        bullet.x = this.x;
+                        bullet.y = this.y + 8;
+                        bullet.velX = -12;
+
+                        bullet.bulletType = "Rocket";
+                        bullet.facingRight = false;
+                        bullets.add(bullet);
+                    }
+                } else if (gunType == 6) {
+                    //TODO: make grenade spawn
+                }
             }
         }
     }
