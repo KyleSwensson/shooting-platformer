@@ -45,7 +45,6 @@ public class Explosion extends PlayerBullet {
             for (Enemy enemy : enemies) {
                 if (rect.overlaps(enemy.getRect())) {
                     enemy.changeHealth(-20);
-                    destroyed = true;
                     EnemyHitSquareAnimation anim = new EnemyHitSquareAnimation();
                     anim.x = x;
                     anim.y = y;
