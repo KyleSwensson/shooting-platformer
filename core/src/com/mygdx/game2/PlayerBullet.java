@@ -45,6 +45,7 @@ public abstract class PlayerBullet extends Bullet {
         for (BaseTile tile : baseTiles) {
             if (tile.isActive) {
                 if (rect.overlaps(tile.rect)) {
+                    if (!bulletType.equals("Grenade"))
                     destroyed = true;
                 }
             }
