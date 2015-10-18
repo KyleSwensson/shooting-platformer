@@ -284,13 +284,16 @@ public class GdxShooter2 extends ApplicationAdapter {
 					robot.flying = false;
 					enemies.add(robot);
 				} else if (levelMap[i][p] == 9) {
-
+					FlyBossHeart enemy = new FlyBossHeart((i*32 + 100), (-p * 32 + (levelMap[1].length * 32)));
+					enemies.add(enemy);
+					/*
 					SmartEnemy enemy = new SmartEnemy();
 					enemy.x = i * 32 + 100;
 					enemy.y = -p * 32 + (levelMap[1].length * 32);
 					enemy.width = 32;
 					enemy.height = 32;
 					enemies.add(enemy);
+					*/
 					/*
 					ShootingGuy enemy = new ShootingGuy();
 					enemy.x = i * 32 + 100;
