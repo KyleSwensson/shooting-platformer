@@ -43,9 +43,9 @@ public class ShootingGuy extends Enemy {
 
 
 
-    public void update(Array<EnemyBullet> enemyBullets, Array<PlayerBullet> bullets,Array<Item> items, Array<BaseTile> baseTiles, Array<Particle> particle1s, int playerX, int playerY) {
-        xDist = Math.abs(playerX - this.x);
-        yDist = Math.abs(playerY - this.y);
+    public void update(Array<Enemy> enemies, Array<EnemyBullet> enemyBullets, Array<PlayerBullet> bullets,Array<Item> items, Array<BaseTile> baseTiles, Array<Particle> particle1s, int playerX, int playerY) {
+        xDist = (int)Math.abs(playerX - this.x);
+        yDist = (int)Math.abs(playerY - this.y);
         if (Math.sqrt((xDist * xDist) + (yDist * yDist)) > drawDist) isActive = false;
         else isActive = true;
 
@@ -206,8 +206,8 @@ public class ShootingGuy extends Enemy {
                 shootTime --;
             } else {
                 BigAuraBullet bul = new BigAuraBullet();
-                bul.x = this.x;
-                bul.y = this.y + 25;
+                bul.x = (int)this.x;
+                bul.y = (int)this.y + 25;
 
                 bul.velX = 0;
                 bul.velY = 2;

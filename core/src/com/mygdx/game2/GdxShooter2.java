@@ -284,8 +284,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 					robot.flying = false;
 					enemies.add(robot);
 				} else if (levelMap[i][p] == 9) {
-					FlyBossHeart enemy = new FlyBossHeart((i*32 + 100), (-p * 32 + (levelMap[1].length * 32)));
-					enemies.add(enemy);
+
 					/*
 					SmartEnemy enemy = new SmartEnemy();
 					enemy.x = i * 32 + 100;
@@ -307,6 +306,16 @@ public class GdxShooter2 extends ApplicationAdapter {
 				} else if (levelMap[i][p] == 100) {
 					player.x = i * 32 + 100;
 					player.y = -p * 32 + (levelMap[1].length * 32);
+
+					FlyBossHeart enemy = new FlyBossHeart((player.x), (player.y));
+					enemy.enemyType = "FlyBoss";
+					enemies.add(enemy);
+
+					for (int q = 0; q < 20; q++) {
+						BossFly e = new BossFly((i*32 + 100) + (random.nextInt(5) - 10), (-p * 32 + (levelMap[1].length * 32) + (random.nextInt(5) - 10)));
+						e.enemyType = "FlyBossMinion";
+						enemies.add(e);
+					}
 				}
 
 			}
@@ -711,7 +720,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 		for (int i = 0; i < robot1s.size;){
 			Roboto1 robot = robot1s.get(i);
-			robot.update(enemyBullets, playerBullets,items, baseTiles, particle1s, player.x, player.y);
+			robot.update(enemies, enemyBullets, playerBullets,items, baseTiles, particle1s, player.x, player.y);
 
 			if (robot.destroyed){
 				int lastRobot = robot1s.size-1;
@@ -724,7 +733,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 		for (int i = 0; i < enemies.size;){
 			Enemy enemy = enemies.get(i);
-			enemy.update(enemyBullets, playerBullets,items, baseTiles, particle1s, player.x, player.y);
+			enemy.update(enemies,enemyBullets, playerBullets,items, baseTiles, particle1s, player.x, player.y);
 
 			if (enemy.getDestroyed()){
 				int lastEnemy = enemies.size-1;
@@ -942,6 +951,9 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 	public void generateNewLevel() {
 		robot1s.clear();
+		enemies.clear();
+		enemyBullets.clear();
+		items.clear();
 		baseTiles.clear();
 		playerBullets.clear();
 		particle1s.clear();

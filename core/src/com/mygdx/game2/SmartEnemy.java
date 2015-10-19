@@ -64,7 +64,7 @@ public class SmartEnemy extends Enemy {
         }
     }
 
-    public void update(Array<EnemyBullet> enemyBullets, Array<PlayerBullet> bullets,Array<Item> items, Array<BaseTile> baseTiles, Array<Particle> particle1s, int playerX, int playerY) {
+    public void update(Array<Enemy> enemies, Array<EnemyBullet> enemyBullets, Array<PlayerBullet> bullets,Array<Item> items, Array<BaseTile> baseTiles, Array<Particle> particle1s, int playerX, int playerY) {
         xDist = Math.abs(playerX - this.x);
         yDist = Math.abs(playerY - this.y);
         if (Math.sqrt((xDist * xDist) + (yDist * yDist)) > drawDist) isActive = false;

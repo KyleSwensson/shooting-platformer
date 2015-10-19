@@ -33,7 +33,7 @@ public class ManaCrystal extends PlayerItem {
     private int frameCount = 0;
     private int framesSwitch = 6; // TODO: idea, could possibly have framesswitch go up as time goes on to seem like spinning is slowing
 
-    public ManaCrystal(int x, int y, float velX, float velY, int width, int height) {
+    public ManaCrystal(float x, float y, float velX, float velY, int width, int height) {
         super(x,y,velX,velY,width,height);
         destroyed = false;
         type = "Mana";

@@ -189,6 +189,11 @@ public class Player extends Character {
             }
         }
 
+        if (Gdx.input.isKeyPressed(Input.Keys.K)) {
+            health = 0;
+        }
+
+
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
             if (fuel > 0) {
                 fuel -=3;

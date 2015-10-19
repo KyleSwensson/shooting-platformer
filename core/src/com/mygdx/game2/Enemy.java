@@ -9,8 +9,8 @@ import com.badlogic.gdx.utils.Array;
  */
 public abstract class Enemy extends Character {
     Rectangle rect = new Rectangle();
-    int x = 0;
-    int y = 0;
+    float x = 0;
+    float y = 0;
     int width = 0;
     int height = 0;
     float velX = 0;
@@ -19,6 +19,11 @@ public abstract class Enemy extends Character {
     float yDist  =0;
     boolean destroyed;
     int health = 0;
+    String enemyType = "";
+
+    public String getType() {
+        return enemyType;
+    }
 
 
     public abstract void changeHealth(int addToHealth);
@@ -27,7 +32,7 @@ public abstract class Enemy extends Character {
 
     public abstract boolean getDestroyed();
 
-    public abstract void update(Array<EnemyBullet> enemyBullets,Array<PlayerBullet> bullets,Array<Item> items, Array<BaseTile> baseTiles, Array<Particle> particle1s, int playerX, int playerY);
+    public abstract void update(Array<Enemy> enemies, Array<EnemyBullet> enemyBullets,Array<PlayerBullet> bullets,Array<Item> items, Array<BaseTile> baseTiles, Array<Particle> particle1s, int playerX, int playerY);
 
     public abstract void draw(SpriteBatch batch);
 }

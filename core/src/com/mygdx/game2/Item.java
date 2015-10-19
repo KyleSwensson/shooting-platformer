@@ -13,8 +13,8 @@ import java.awt.*;
 //TODO: Finish implementing type hierarchy on items
 public abstract class Item {
     boolean destroyed = false;
-    int x;
-    int y;
+    float x;
+    float y;
     float velX;
     float velY;
     int width;
@@ -22,7 +22,7 @@ public abstract class Item {
     Rectangle rect = new Rectangle();
     protected String type = "";
 
-    public Item(int x, int y, float velX, float velY, int width, int height) {
+    public Item(float x, float y, float velX, float velY, int width, int height) {
         this.x = x;
         this.y = y;
         this.velX = velX;

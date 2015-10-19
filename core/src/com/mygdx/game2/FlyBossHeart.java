@@ -19,6 +19,7 @@ public class FlyBossHeart extends Enemy implements Boss {
     boolean isActive; // boolean to tell whether it is too far away and should be drawn
     Texture image = new Texture("bossCrystal.png");
 
+
     Random random = new Random();
 
     public FlyBossHeart(int x, int y) {
@@ -28,19 +29,18 @@ public class FlyBossHeart extends Enemy implements Boss {
         width = 24;
         height = 36;
         image = new Texture("bossCrystal.png");
+
     }
 
     public Rectangle getRect() {
         return rect;
     }
 
-    public void update(Array<EnemyBullet> enemyBullets, Array<PlayerBullet> bullets,Array<Item> items, Array<BaseTile> baseTiles, Array<Particle> particle1s, int playerX, int playerY) {
-        xDist = Math.abs(playerX - this.x);
-        yDist = Math.abs(playerY - this.y);
+    public void update(Array<Enemy> enemies,Array<EnemyBullet> enemyBullets, Array<PlayerBullet> bullets,Array<Item> items, Array<BaseTile> baseTiles, Array<Particle> particle1s, int playerX, int playerY) {
+        xDist = (int)Math.abs(playerX - this.x);
+        yDist = (int)Math.abs(playerY - this.y);
         if (Math.sqrt((xDist * xDist) + (yDist * yDist)) > drawDist) isActive = false;
         else isActive = true;
-
-
 
 
 
@@ -82,7 +82,7 @@ public class FlyBossHeart extends Enemy implements Boss {
     }
 
     public void draw(SpriteBatch batch) {
-        batch.draw(image,x,y,width,height, 0, 0, 12, 18);
+        batch.draw(image,x,y,width,height);
     }
 
     private void destroyRobot(Array<Particle> particle1s, Array<Item> items) {
