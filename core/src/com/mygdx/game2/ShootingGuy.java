@@ -110,15 +110,15 @@ public class ShootingGuy extends Enemy {
     private void destroyEnemy(Array<Particle> particle1s, Array<Item> items) {
         destroyed = true;
 
-        HealthCrystal hp = new HealthCrystal(this.x,
-                this.y,
+        HealthCrystal hp = new HealthCrystal((int)this.x,
+                (int)this.y,
                 -velX + random.nextInt(3) - 1,
                 3 + random.nextInt(3) - 1,
                 10,12);
         items.add(hp);
 
-        ManaCrystal mp = new ManaCrystal(this.x,
-                this.y,
+        ManaCrystal mp = new ManaCrystal((int)this.x,
+                (int)this.y,
                 -velX + random.nextInt(3) - 1,
                 3 + random.nextInt(3) - 1,
                 10,12);

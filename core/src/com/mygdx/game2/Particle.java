@@ -100,6 +100,12 @@ public abstract class Particle {
 
 
             } else velY -= .1;
+        } else if (partType.equals("dust")) {
+            width -= .5;
+            height -= .5;
+            if (width <= 0 || height <= 0) {
+                destroyed = true;
+            }
         }
 
         rect.x = x;

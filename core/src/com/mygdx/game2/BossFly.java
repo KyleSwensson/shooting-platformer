@@ -3,6 +3,7 @@ package com.mygdx.game2;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
 import java.util.Random;
@@ -11,6 +12,8 @@ import java.util.Random;
  * Created by kyle on 10/18/2015.
  */
 public class BossFly extends Enemy {
+
+
 
     int xDist; // distance from block to character x plane
     int yDist; // distance from block to character y plane
@@ -23,6 +26,13 @@ public class BossFly extends Enemy {
     int orbitXStrength;
     int orbitYStrength;
 
+    float speed; // speed at which thing orbits
+
+    Vector2 direction = new Vector2();
+
+    double angleRadians;
+    int angleDegrees;
+
     Texture image = new Texture("SPA/Decoration/Fly/fly-1.png");
     Texture image2 = new Texture("SPA/Decoration/Fly/fly-2.png");
     Texture image3 = new Texture("SPA/Decoration/Fly/fly-3.png");
@@ -30,7 +40,7 @@ public class BossFly extends Enemy {
 
     private int animImage = 0;
     private int frameCount = 0;
-    private int framesSwitch = 6; // TODO: idea, could possibly have framesswitch go up as time goes on to seem like spinning is slowing
+    private int framesSwitch = 6;
 
     public BossFly(float x, float y) {
         this.x = x;
@@ -38,7 +48,9 @@ public class BossFly extends Enemy {
         orbitXStrength = random.nextInt(4) +6;
         orbitYStrength = random.nextInt(4) + 6;
         width = 18;
-        //TODO: make attraction force stronger ther farther it is from the core
+        health = 50;
+        speed = (random.nextInt(10) + 4) / 3;
+
 
         height = 18;
     }
@@ -59,9 +71,11 @@ public class BossFly extends Enemy {
         health += addToHealth;
     }
     public void draw(SpriteBatch batch) {
-        //TODO: draw function
-        batch.draw(images[animImage], x, y, width,height);
         batch.draw(images[animImage], x, y, width/2,height/2, width, height,1, 1, angleDegrees, 0, 0 , width/2, height/2, false, false);
+    }
+
+    public void destroyEnemy() {
+        destroyed = true;
     }
 
     public void setOrbitPt(float orbitX, float orbitY) {
@@ -71,31 +85,39 @@ public class BossFly extends Enemy {
 
     public void moveThis(int playerX, int playerY) {
         if (orbitX > this.x) {
-            velX += .01 * orbitXStrength;
+            x += .02 * orbitXStrength;
         } else {
-            velX -= .01 * orbitXStrength;
+            x -= .02 * orbitXStrength;
         }
         if (orbitY > this.y) {
-            velY += .01 * orbitYStrength;
+            y += .02 * orbitYStrength;
         } else {
-            velY -= .01 * orbitYStrength;
+            y -= .02 * orbitYStrength;
         }
-        if (velX > 9) velX = 9;
-        else if (velX < -9) velX = -9;
-        if (velY > 9) velY = 9;
-        else if (velY < -9) velY = -9;
+
+        //first get the direction the entity is pointed
+        direction.x = (float) Math.cos(angleRadians);
+        direction.y = (float) Math.sin(angleRadians);
+//Then scale it by the current speed to get the velocity
+        velX = direction.x * speed;
+        velY = direction.y * speed;
+
+        //setRotation(angleDegrees);
     }
-    public void update(Array<Enemy> enemies, Array<EnemyBullet> enemyBullets, Array<PlayerBullet> bullets,Array<Item> items, Array<BaseTile> baseTiles, Array<Particle> particle1s, int playerX, int playerY) {
+    public void update(Array<Enemy> enemies, Array<EnemyBullet> enemyBullets,Array<PlayerBullet> bullets,Array<Item> items, Array<BaseTile> baseTiles, Array<Particle> particle1s, int playerX, int playerY) {
         //xDist = (int)Math.abs(playerX - this.x);
         //yDist = (int)Math.abs(playerY - this.y);
         //player distance irrelevant currently
-        //TODO: make fly face heart and move 90 degrees clockwise to this
+
 
         xDist = (int) (orbitX - x);
         yDist = (int) (orbitY - y);
 
-        double angleRadians = Math.atan2(yDist, xDist);
-        int angleDegrees = (int)Math.toDegrees(angleRadians);
+
+        if (health <= 0) {
+            destroyEnemy();
+        }
+
 
         //setRotation(angleDegrees);
 
@@ -110,15 +132,21 @@ public class BossFly extends Enemy {
             }
         }
 
-        frameCount++;
-        if (frameCount > framesSwitch) {
-            frameCount = 0;
-            animImage ++;
-            if (animImage > 2) animImage = 0;
-        }
+
 
 
         if (isActive) {
+
+            frameCount++;
+            if (frameCount > framesSwitch) {
+                frameCount = 0;
+                animImage ++;
+                if (animImage > 2) animImage = 0;
+            }
+
+            angleRadians = Math.atan2(yDist, xDist) + Math.PI/2;
+            angleDegrees = (int)Math.toDegrees(angleRadians);
+
 
             moveThis(playerX, playerY);
 
@@ -136,7 +164,8 @@ public class BossFly extends Enemy {
             rect.height = height;
 
 
-            checkTilesHit(baseTiles);
+            //checkTilesHit(baseTiles);
+            //currently not checking tiles because that made the fly get like hella stuck all the time
 
 
         }

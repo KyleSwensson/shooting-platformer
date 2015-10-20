@@ -24,6 +24,9 @@ public class SmartEnemy extends Enemy {
     boolean destroyed = false;
 
 
+    float x;
+    float y;
+
     Random random = new Random();
 
     boolean facingRight = false;
@@ -65,8 +68,8 @@ public class SmartEnemy extends Enemy {
     }
 
     public void update(Array<Enemy> enemies, Array<EnemyBullet> enemyBullets, Array<PlayerBullet> bullets,Array<Item> items, Array<BaseTile> baseTiles, Array<Particle> particle1s, int playerX, int playerY) {
-        xDist = Math.abs(playerX - this.x);
-        yDist = Math.abs(playerY - this.y);
+        xDist = (int)Math.abs(playerX - this.x);
+        yDist = (int)Math.abs(playerY - this.y);
         if (Math.sqrt((xDist * xDist) + (yDist * yDist)) > drawDist) isActive = false;
         else isActive = true;
 
@@ -149,15 +152,16 @@ public class SmartEnemy extends Enemy {
     private void destroyEnemy(Array<Particle> particle1s, Array<Item> items) {
         destroyed = true;
 
-        HealthCrystal hp = new HealthCrystal(this.x,
-                this.y,
+        HealthCrystal hp = new HealthCrystal((int)this.x,
+                (int)this.y,
                 -velX + random.nextInt(3) - 1,
                 3 + random.nextInt(3) - 1,
                 10,12);
+
         items.add(hp);
 
-        ManaCrystal mp = new ManaCrystal(this.x,
-                this.y,
+        ManaCrystal mp = new ManaCrystal((int)this.x,
+                (int)this.y,
                 -velX + random.nextInt(3) - 1,
                 3 + random.nextInt(3) - 1,
                 10,12);
@@ -240,7 +244,6 @@ public class SmartEnemy extends Enemy {
     }
 
     public void draw(SpriteBatch batch) {
-
         batch.draw(image,x,y,width,height, 0, 0, 32, 32, !facingRight, false);
 
     }

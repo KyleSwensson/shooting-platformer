@@ -31,6 +31,9 @@ public class Player extends Character {
     float bgXOffset = 0;
     float bgYOffset = 0;
 
+    int wallSlidingDustFrames = 0; // how many frames the player is sliding down a wall before dust is made
+    int wallSlidingDustMax = 5;
+
     boolean isHit = false; // if it is true that means player is in an animation that makes him invincible for a few seconds after being hit
     int hitTime = 0; // how many frames are left in the animation that the player is hit in
 
@@ -127,11 +130,25 @@ public class Player extends Character {
 
         if (touchingGround) {
             if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+                if (velX >= 0) {
+                    for (int i = 0; i < 3; i++) {
+                        DustParticle part = new DustParticle(x + ((i + 3) * (width / 6)), y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
+                        particle1s.add(part);
+                    }
+                }
+
                 facingRight = false;
                 if (velX > -6)
                     velX -= 2;
             }
             else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+                if (velX <= 0) {
+                    for (int i = 0; i < 3; i++) {
+                        DustParticle part = new DustParticle(x + (i * (width / 6)), y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
+                        particle1s.add(part);
+                    }
+                }
+
                 facingRight = true;
                 if (velX < 6) velX += 2;
             }
@@ -158,6 +175,18 @@ public class Player extends Character {
 
 
         if (touchingLeftWall || touchingRightWall) {
+            if (wallSlidingDustFrames < wallSlidingDustMax) {
+                wallSlidingDustFrames++;
+            } else {
+                if (touchingLeftWall) {
+                    DustParticle part = new DustParticle(x, y + height / 2, 0, 0, "dust", 100);
+                    particle1s.add(part);
+                } else {
+                    DustParticle part = new DustParticle(x + width - 4, y + height / 2, 0, 0, "dust", 100);
+                    particle1s.add(part);
+                }
+                wallSlidingDustFrames = 0;
+            }
             if (velY < -3) velY = -3;
         }
             if (velY < 15) velY -= .3;
@@ -170,18 +199,31 @@ public class Player extends Character {
                     y += 2;
                     velY = 7.5f;
                     canJump = false;
+                    for(int i = 0; i < 5; i++) {
+                        DustParticle part = new DustParticle(x + (i * (width / 5)), y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
+                        particle1s.add(part);
+                    }
+
                 } else {
                     if (touchingLeftWall) {
                         y += 2;
                         velY = 7.5f;
                         velX = 4f;
                         canJump = false;
+                        for(int i = 0; i < 5; i++) {
+                            DustParticle part = new DustParticle(x + (i * (width / 5)), y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
+                            particle1s.add(part);
+                        }
                     }
                     if (touchingRightWall) {
                         y += 2;
                         velY = 7.5f;
                         velX = -4f;
                         canJump = false;
+                        for(int i = 0; i < 5; i++) {
+                            DustParticle part = new DustParticle(x + (i * (width / 5)), y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
+                            particle1s.add(part);
+                        }
                     }
                 }
 
@@ -255,7 +297,7 @@ public class Player extends Character {
 
         touchingCeiling = false;
         touchingGround = false;
-        checkTilesHit(baseTiles);
+        checkTilesHit(baseTiles, particle1s);
 
         checkRobotsHit(enemies, anims, enemyBullets);
 
@@ -379,28 +421,32 @@ public class Player extends Character {
                         bulletSpawnCounter = 0;
                         if (facingRight) {
 
-                            PlayerFire bullet = new PlayerFire();
-                            bullet.x = this.x;
-                            bullet.y = this.y + 8;
-                            bullet.velX = 8 + random.nextInt(3) - 1;
-                            bullet.velY = random.nextInt(3) - 1;
-                            bullet.width = 4;
-                            bullet.height = 4;
-                            bullet.facingRight = false;
-                            bullet.bulletType = "Flame";
-                            bullets.add(bullet);
-                        } else {
 
-                            PlayerFire bullet = new PlayerFire();
-                            bullet.x = this.x;
-                            bullet.y = this.y + 8;
-                            bullet.velX = -8 + random.nextInt(3) - 1;
-                            bullet.velY = random.nextInt(3) - 1;
-                            bullet.width = 4;
-                            bullet.height = 4;
-                            bullet.facingRight = false;
-                            bullet.bulletType = "Flame";
-                            bullets.add(bullet);
+                            for (int i = 0; i<3; i++) {
+                                PlayerFire bullet = new PlayerFire();
+                                bullet.x = this.x;
+                                bullet.y = this.y + 8;
+                                bullet.velX = 8 + random.nextInt(3) - 1;
+                                bullet.velY = random.nextInt(3) - 1;
+                                bullet.width = 7;
+                                bullet.height = 7;
+                                bullet.facingRight = false;
+                                bullet.bulletType = "Flame";
+                                bullets.add(bullet);
+                            }
+                        } else {
+                            for (int i = 0; i < 3; i++) {
+                                PlayerFire bullet = new PlayerFire();
+                                bullet.x = this.x;
+                                bullet.y = this.y + 8;
+                                bullet.velX = -8 + (random.nextInt(30) - 10) / 10;
+                                bullet.velY = (random.nextInt(30) - 10) / 10;
+                                bullet.width = 7;
+                                bullet.height = 7;
+                                bullet.facingRight = false;
+                                bullet.bulletType = "Flame";
+                                bullets.add(bullet);
+                            }
 
                         }
                     }
@@ -567,7 +613,7 @@ public class Player extends Character {
         }
     }
 
-    public void checkTilesHit(Array<BaseTile> baseTiles) {
+    public void checkTilesHit(Array<BaseTile> baseTiles,Array<Particle> particle1s) {
 
         for (BaseTile tile : baseTiles) {
             if (tile.isActive) {
@@ -614,6 +660,12 @@ public class Player extends Character {
 
                     } else if (directionLeastPassed.equals("Bottom")) {
                         rect.y = rect2Top;
+                        if (velY < -2) {
+                            for (int i = 0; i < 3; i++) {
+                                DustParticle part = new DustParticle(x + (i * (width / 6)), y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
+                                particle1s.add(part);
+                            }
+                        }
                         velY = 0;
                         canJump = true;
                         touchingGround = true;

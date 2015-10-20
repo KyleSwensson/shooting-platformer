@@ -19,10 +19,10 @@ public class PlayerFire extends PlayerBullet {
         if (velX > 0) velX -= .1;
         else if (velX < 0) velX += .1;
 
-        this.height -= .02;
-        this.width -= .02;
+        this.height -= .12;
+        this.width -= .12;
 
-        velY += .1;
+        velY += .06;
 
         if (velY > 2) velY = 2;
 
@@ -36,6 +36,9 @@ public class PlayerFire extends PlayerBullet {
                 anim.y = y;
                 anims.add(anim);
             }
+        }
+        if (width < 0 || height < 0) {
+            destroyed = true;
         }
     }
     public void draw(SpriteBatch batch) {

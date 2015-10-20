@@ -46,26 +46,12 @@ public class FlyBossHeart extends Enemy implements Boss {
 
         if (isActive) {
 
-
-
-
-
-
-
-
             moveThis(playerX, playerY);
 
 
             if (health <= 0) {
                 destroyRobot(particle1s, items);
             }
-
-
-
-
-
-
-
             x += velX;
             y += velY;
 
@@ -74,9 +60,7 @@ public class FlyBossHeart extends Enemy implements Boss {
             rect.width = width;
             rect.height = height;
 
-
             checkTilesHit(baseTiles);
-
 
         }
     }

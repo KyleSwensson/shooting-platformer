@@ -9,8 +9,8 @@ import com.badlogic.gdx.utils.Array;
  */
 public abstract class Enemy extends Character {
     Rectangle rect = new Rectangle();
-    float x = 0;
-    float y = 0;
+    float x;
+    float y;
     int width = 0;
     int height = 0;
     float velX = 0;

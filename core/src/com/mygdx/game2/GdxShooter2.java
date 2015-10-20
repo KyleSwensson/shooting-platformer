@@ -3,6 +3,7 @@ package com.mygdx.game2;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -45,9 +46,11 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 
 	//every item in this array actually represents a large chunk of blocks
-	int[][] chunkMap = new int[50][20]; // first number is the y value 0 at top 10 at bottom second number is x value 0 at left 10 at right
+	int[][] chunkMap = new int[200][60]; // first number is the y value 0 at top 10 at bottom second number is x value 0 at left 10 at right
 
 	int[][] levelMap = new int[chunkMap.length*5 + 5][chunkMap[0].length*5 + 5];
+
+	int[][] bgMap = new int[levelMap.length / 4][levelMap[0].length / 4];
 
 
 	int currentLevel = 0;
@@ -86,9 +89,12 @@ public class GdxShooter2 extends ApplicationAdapter {
 	Texture sparkParticleImg;
 	Texture flameParticleImg;
 	Texture experienceParticleImg;
+	Texture dustParticleImg;
 
 	//Textures for tiles
 	Texture groundTileImg;
+
+	Texture bgTileImg;
 
 	Texture dirtTile;
 	Texture dirtTileGrassCorner;
@@ -99,6 +105,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 	Texture tileMapImg;
 	int tileMapOffsetX = 0;
 	int tileMapOffsetY = 0;
+	//TODO: delete parralax scrolly bg that dont work
 
 	//Textures for GUI items
 	Texture healthBarImg;
@@ -198,9 +205,12 @@ public class GdxShooter2 extends ApplicationAdapter {
 		sparkParticleImg = new Texture("sparkParticle.png");
 		flameParticleImg = new Texture("fireParticle.png");
 		experienceParticleImg = new Texture("experiencePellet.png");
+		dustParticleImg = new Texture("SPA/Player/player_dust.png");
 
 
 		//Textures for tiles
+
+		bgTileImg = new Texture("SPA/Decoration/tiled_bg.png");
 		groundTileImg = new Texture("groundTile.png");
 		dirtTile = new Texture("dirtTile.png");
 		dirtTileGrassCorner = new Texture("dirtGrassTopCorner.png");
@@ -227,7 +237,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 		player.width = 24;
 		player.height = 36;
 
-		createChunkMap();
+		createChunkMap(currentLevel);
 
 		addTileTypesToChunkMap();
 
@@ -245,6 +255,18 @@ public class GdxShooter2 extends ApplicationAdapter {
 	}
 
 	private void instantiateLevelMap() {
+
+		for (int i = 0; i<bgMap.length; i++) {
+			for (int p = 0; p < levelMap[0].length; p++) {
+				BaseTile tile = new BaseTile(i * 128 + 100, -p * 128 + (bgMap[1].length * 128));
+				tile.width = 128;
+				tile.height = 128;
+				tile.type = "background";
+				passiveTiles.add(tile);
+			}
+		}
+
+
 		for (int i = 0; i<levelMap.length; i++) {
 			for (int p = 0; p < levelMap[0].length; p++) {
 				if (levelMap[i][p] == 0) {
@@ -306,13 +328,13 @@ public class GdxShooter2 extends ApplicationAdapter {
 				} else if (levelMap[i][p] == 100) {
 					player.x = i * 32 + 100;
 					player.y = -p * 32 + (levelMap[1].length * 32);
-
-					FlyBossHeart enemy = new FlyBossHeart((player.x), (player.y));
+				} else if (levelMap[i][p] == 80551) {
+					FlyBossHeart enemy = new FlyBossHeart((i*32 + 100), -p * 32 + (levelMap[1].length*32));
 					enemy.enemyType = "FlyBoss";
 					enemies.add(enemy);
 
 					for (int q = 0; q < 20; q++) {
-						BossFly e = new BossFly((i*32 + 100) + (random.nextInt(5) - 10), (-p * 32 + (levelMap[1].length * 32) + (random.nextInt(5) - 10)));
+						BossFly e = new BossFly((i*32 + 100) + (random.nextInt(100) - 50), (-p * 32 + (levelMap[1].length * 32) + (random.nextInt(100) - 50)));
 						e.enemyType = "FlyBossMinion";
 						enemies.add(e);
 					}
@@ -328,7 +350,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 
 		levelMap = new int[chunkMap.length*5 + 5][chunkMap[0].length*5 + 5];
-
+		bgMap = new int[levelMap.length / 2][levelMap[0].length / 2];
 		for (int i = 0; i < chunkMap.length; i++) {
 			for (int p = 0; p < chunkMap[0].length; p++) {
 				if (chunkMap[i][p] == 1) {
@@ -503,6 +525,22 @@ public class GdxShooter2 extends ApplicationAdapter {
 					}
 
 					levelMap[i*5 + 3][p*5 + 3] = 9;
+				} else if (chunkMap[i][p] == 50) {
+					for (int q = 1; q <= 5; q++) {
+						for (int w = 1; w <= 5; w++) {
+							levelMap[(i*5)+q][((p*5) + w)] = 1;
+						}
+					}
+				}  else if (chunkMap[i][p] == 51) {
+					for (int q = 1; q <= 5; q++) {
+						for (int w = 1; w <= 5; w++) {
+							levelMap[(i*5)+q][((p*5) + w)] = 1;
+						}
+					}
+					levelMap[(i*5) + 5][(p*5 + 5)] = 80551;// 80551 stands for boss1
+
+
+
 				}
 			}
 		}
@@ -524,7 +562,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 		}
 	}
 
-	private void createChunkMap() {
+	private void createChunkMap(int level) {
 
 
 
@@ -532,7 +570,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 		boolean movedPastBounds;
 		//randomly generate chunkMap
-		chunkMap[0][chunkMap[0].length/2] = 69; // makes the 0th tile over and the 4th tile down be an player spawn tile
+		chunkMap[3][chunkMap[0].length/2] = 69; // makes the 0th tile over and the 4th tile down be an player spawn tile
 		int generateChunkX = 0; // the chunk that is being made empty currently in X dir
 		int generateChunkY = chunkMap[0].length/2; // the chunk that is being made empty currently in Y dir
 		String dirMove = "Right"; // string that can be "Up" "Down" "Left" or "Right"
@@ -549,34 +587,47 @@ public class GdxShooter2 extends ApplicationAdapter {
 				dirMove = "Down";
 			} else dirMove = "Left";
 
+			//TODO: to make player dust just make it spawn a row ish thing of dust particles and have them get smaller really fast width wise faster
 
 			if (dirMove.equals("Right")) generateChunkX ++; // change generatechunks to the right of current block
 			else if (dirMove.equals("Left")) generateChunkX --;// change generatechunks to the left of current block
 			else if (dirMove.equals("Up")) generateChunkY ++; // change generatechunks to on top of current block
 			else if (dirMove.equals("Down")) generateChunkY --; // change generatechunks to on the bottom of current block
 
-			if (generateChunkX > chunkMap.length - 1) {generateChunkX = chunkMap.length - 1;
+			if (generateChunkX > chunkMap.length - 4) {generateChunkX = chunkMap.length - 4;
 				movedPastBounds = true;}
-			else if (generateChunkX < 0) {
-				generateChunkX = 0;
+			else if (generateChunkX < 3) {
+				generateChunkX = 3;
 				movedPastBounds = true;
 			}
 
-			if (generateChunkY > chunkMap[0].length - 1) {
-				generateChunkY = chunkMap[0].length - 1;
+			if (generateChunkY > chunkMap[0].length - 4) {
+				generateChunkY = chunkMap[0].length - 4;
 				movedPastBounds = true;
 			}
-			else if (generateChunkY < 0) {
-				generateChunkY = 0;
+			else if (generateChunkY < 3) {
+				generateChunkY = 3;
 				movedPastBounds = true;
 			}
 
-			chunkMap[generateChunkX][generateChunkY] = 1;
+			if (chunkMap[generateChunkX][generateChunkY] == 0) {
+				chunkMap[generateChunkX][generateChunkY] = 1;
+			}
 
 
 
 			if (i == 199) {
-				chunkMap[generateChunkX][generateChunkY] = 2; // makes it an end tile
+				if (level == 2) {
+					chunkMap[generateChunkX][generateChunkY] = 51; // boss tile
+					chunkMap[generateChunkX][generateChunkY+1] = 50; // boss tile
+					chunkMap[generateChunkX+1][generateChunkY] = 50; // boss tile
+					chunkMap[generateChunkX+1][generateChunkY+1] = 50; // boss tile
+
+
+				} else {
+					chunkMap[generateChunkX][generateChunkY] = 2; // makes it an end tile
+				}
+
 			}
 
 
@@ -604,7 +655,6 @@ public class GdxShooter2 extends ApplicationAdapter {
 								else if (tileRandom == 2) chunkMap[i][p] = 21;// 1 high step
 								else if (tileRandom == 3) chunkMap[i][p] = 22;// 2 high step
 								else if (tileRandom == 4) chunkMap[i][p] = 23;//sloped
-
 							} else {
 
 								//this means its a tile on the ground so it can use ground randomization tile #s, 11,12,13,and 14
@@ -616,8 +666,6 @@ public class GdxShooter2 extends ApplicationAdapter {
 								else if (tileRandom == 5) chunkMap[i][p] = 14;
 								else if (tileRandom == 6) chunkMap[i][p] = 30;// spawn a robot
 								else if (tileRandom == 7) chunkMap[i][p] = 31;// spawn a flying robot
-
-
 							}
 						}
 					}
@@ -767,15 +815,22 @@ public class GdxShooter2 extends ApplicationAdapter {
 		camera.position.set(player.x + cameraXAdjustment, player.y + cameraYAdjustment, 0);
 		shakeCamera();
 		batch.setProjectionMatrix(camera.combined);
+		Color batchPrevColor = batch.getColor();
 		batch.begin();
+		batch.setColor(100,0,0,1);
+
 		//batch.draw(img, 0, 0);
 		batch.draw(jungleBg, player.x - 500, player.y - 500, 1000, 1000);
 
 		for (BaseTile tile : passiveTiles) {
-
-			batch.draw(tileMapImg, tile.x, tile.y, tile.width, tile.height, 64,32,16,16, false,false);
+			if (tile.type.equals("background")) {
+				batch.draw(bgTileImg, tile.x, tile.y, tile.width, tile.height);
+			} else {
+				batch.draw(tileMapImg, tile.x, tile.y, tile.width, tile.height, 64, 32, 16, 16, false, false);
+			}
 		}
 
+		batch.setColor(batchPrevColor);
 		for (PlayerBullet bul : playerBullets) {
 			bul.draw(batch);
 		}
@@ -820,76 +875,77 @@ public class GdxShooter2 extends ApplicationAdapter {
 				batch.draw(sparkParticleImg, part.x, part.y, part.width, part.height, 0,0, 2, 2, false, false);
 			else if (part.partType.equals("EXP"))
 				batch.draw(experienceParticleImg, part.x, part.y, 10, 10, 0, 0, 10, 10, false, false);
+			else if (part.partType.equals("dust"))
+				batch.draw(dustParticleImg, part.x, part.y, part.width,part.height);
 		}
 
 		for (BaseTile tile : baseTiles) {
 
+
 			if (tile.isActive) {
+					if (tile.type.equals("blank")) {
+						if (tile.orientation[0] == 1 && tile.orientation[1] == 1 && tile.orientation[2] == 1 && tile.orientation[3] == 0) {
+							//grass top
+							tileMapOffsetX = 32;
+							tileMapOffsetY = 0;
+							tile.isFlipped = false;
 
-				if (tile.type.equals("blank")) {
-					if (tile.orientation[0] == 1 && tile.orientation[1] == 1 && tile.orientation[2] == 1 && tile.orientation[3] == 0) {
-						//grass top
-						tileMapOffsetX = 32;
-						tileMapOffsetY = 0;
-						tile.isFlipped = false;
+						} else if (tile.orientation[0] == 0 && tile.orientation[1] == 1 && tile.orientation[2] == 1 && tile.orientation[3] == 0) {
+							//grass corner top left
+							tileMapOffsetX = 0;
+							tileMapOffsetY = 0;
+							tile.isFlipped = false;
+						} else if (tile.orientation[0] == 1 && tile.orientation[1] == 0 && tile.orientation[2] == 1 && tile.orientation[3] == 0) {
+							//grass corner top right
+							tileMapOffsetX = 0;
+							tileMapOffsetY = 0;
+							tile.isFlipped = true;
+						} else if (tile.orientation[0] == 0 && tile.orientation[1] == 1 && tile.orientation[2] == 1 && tile.orientation[3] == 1) {
+							// side tile left
+							tileMapOffsetX = 16;
+							tileMapOffsetY = 16;
+							tile.isFlipped = false;
+						} else if (tile.orientation[0] == 1 && tile.orientation[1] == 0 && tile.orientation[2] == 1 && tile.orientation[3] == 1) {
+							// side tile right
+							tileMapOffsetX = 16;
+							tileMapOffsetY = 16;
+							tile.isFlipped = true;
 
-					} else if (tile.orientation[0] == 0 && tile.orientation[1] == 1 && tile.orientation[2] == 1 && tile.orientation[3] == 0) {
-						//grass corner top left
-						tileMapOffsetX = 0;
-						tileMapOffsetY = 0;
-						tile.isFlipped = false;
-					} else if (tile.orientation[0] == 1 && tile.orientation[1] == 0 && tile.orientation[2] == 1 && tile.orientation[3] == 0) {
-						//grass corner top right
-						tileMapOffsetX = 0;
-						tileMapOffsetY = 0;
-						tile.isFlipped = true;
-					} else if (tile.orientation[0] == 0 && tile.orientation[1] == 1 && tile.orientation[2] == 1 && tile.orientation[3] == 1) {
-						// side tile left
-						tileMapOffsetX = 16;
-						tileMapOffsetY = 16;
-						tile.isFlipped = false;
+						} else if (tile.orientation[0] == 1 && tile.orientation[1] == 1 && tile.orientation[2] == 0 && tile.orientation[3] == 1) {
+							//bottom tile
+							tileMapOffsetX = 0;
+							tileMapOffsetY = 16;
+							tile.isFlipped = false;
+						} else if (tile.orientation[0] == 0 && tile.orientation[1] == 1 && tile.orientation[2] == 0 && tile.orientation[3] == 1) {
+							// bottom left corner
+							tileMapOffsetX = 0;
+							tileMapOffsetY = 0;
+							tile.isFlipped = false;
+							tile.isFlippedVertical = true;
+						} else if (tile.orientation[0] == 1 && tile.orientation[1] == 0 && tile.orientation[2] == 0 && tile.orientation[3] == 1) {
+							//bottom right corner
+							tileMapOffsetX = 0;
+							tileMapOffsetY = 0;
+							tile.isFlipped = true;
+							tile.isFlippedVertical = true;
+						} else if (tile.orientation[0] == 0 && tile.orientation[1] == 0 && tile.orientation[2] == 1 && tile.orientation[3] == 0) {
+							//only covered on bottom
+							tileMapOffsetX = 16;
+							tileMapOffsetY = 48;
+							tile.isFlipped = false;
+							tile.isFlippedVertical = false;
+						} else {
+							//center tile
+							tileMapOffsetX = 64;
+							tileMapOffsetY = 32;
+						}
 					}
-					else if (tile.orientation[0] == 1 && tile.orientation[1] == 0 && tile.orientation[2] == 1 && tile.orientation[3] == 1) {
-						// side tile right
-						tileMapOffsetX = 16;
-						tileMapOffsetY = 16;
-						tile.isFlipped = true;
-
-					} else if (tile.orientation[0] == 1 && tile.orientation[1] == 1 && tile.orientation[2] == 0 && tile.orientation[3] == 1) {
-						//bottom tile
-						tileMapOffsetX = 0;
-						tileMapOffsetY = 16;
-						tile.isFlipped = false;
-					} else if (tile.orientation[0] == 0 && tile.orientation[1] == 1 && tile.orientation[2] == 0 && tile.orientation[3] == 1) {
-						// bottom left corner
-						tileMapOffsetX = 0;
-						tileMapOffsetY = 0;
-						tile.isFlipped = false;
-						tile.isFlippedVertical = true;
-					} else if  (tile.orientation[0] == 1 && tile.orientation[1] == 0 && tile.orientation[2] == 0 && tile.orientation[3] == 1) {
-						//bottom right corner
-						tileMapOffsetX = 0;
-						tileMapOffsetY = 0;
-						tile.isFlipped = true;
-						tile.isFlippedVertical = true;
-					} else if (tile.orientation[0] == 0 && tile.orientation[1] == 0 && tile.orientation[2] == 1 && tile.orientation[3] == 0) {
-						//only covered on bottom
-						tileMapOffsetX = 16;
-						tileMapOffsetY = 48;
-						tile.isFlipped = false;
-						tile.isFlippedVertical = false;
-					}
-					else {
-						//center tile
-						tileMapOffsetX = 64;
-						tileMapOffsetY = 32;
-					}
+					//TODO: fix this so that when the map is generated it generates tile map offsets within the tile class for each tile
+					// and only do it on generation so it doesnt do all of these if statements every draw
+					batch.draw(tileMapImg, (tile.x), (tile.y), tile.width, tile.height, tileMapOffsetX, tileMapOffsetY, 16, 16, tile.isFlipped, tile.isFlippedVertical);
 				}
-				//TODO: fix this so that when the map is generated it generates tile map offsets within the tile class for each tile
-				// and only do it on generation so it doesnt do all of these if statements every draw
-				batch.draw(tileMapImg, (tile.x), (tile.y), tile.width, tile.height, tileMapOffsetX, tileMapOffsetY ,16, 16, tile.isFlipped, tile.isFlippedVertical);
 			}
-		}
+
 
 
 		batch.draw(endLevelDoorImg, endGate.x, endGate.y, endGate.width, endGate.height, 0, 0, 32, 32, false, false);
@@ -962,7 +1018,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 		player.x = 800 / 2 - 64 / 2;
 		player.y = (levelMap[1].length / 2) * 32;
 
-		createChunkMap();
+		createChunkMap(currentLevel);
 
 		addTileTypesToChunkMap();
 
