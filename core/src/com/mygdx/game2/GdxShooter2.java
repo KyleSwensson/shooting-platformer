@@ -8,7 +8,9 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.*;
 
 
 //TODO: have each tile have an additional chance to spawn enemies, have enemies drop experience, have a level system
@@ -126,6 +128,19 @@ public class GdxShooter2 extends ApplicationAdapter {
 	int shakeFrames = 0;
 	int cameraXAdjustment;
 	int cameraYAdjustment;
+
+	public static float ambientIntensity = .7f;
+	public static final Vector3 ambientColor = new Vector3(0.3f, 0.3f, 0.7f);
+
+
+	varying LOWP vec4 vColor;
+	varying vec2 vTexCoord;
+
+	//texture samplers
+	sampler2D u_texture; //diffuse map
+
+	//additional parameters for the shader
+	uniform LOWP vec4 ambientColor;
 
 	Gate endGate;
 
@@ -799,8 +814,6 @@ public class GdxShooter2 extends ApplicationAdapter {
 		}
 
 
-
-
 	}
 
 
@@ -817,9 +830,6 @@ public class GdxShooter2 extends ApplicationAdapter {
 		batch.setProjectionMatrix(camera.combined);
 		Color batchPrevColor = batch.getColor();
 		batch.begin();
-		batch.setColor(100,0,0,1);
-
-		//batch.draw(img, 0, 0);
 		batch.draw(jungleBg, player.x - 500, player.y - 500, 1000, 1000);
 
 		for (BaseTile tile : passiveTiles) {
@@ -830,7 +840,6 @@ public class GdxShooter2 extends ApplicationAdapter {
 			}
 		}
 
-		batch.setColor(batchPrevColor);
 		for (PlayerBullet bul : playerBullets) {
 			bul.draw(batch);
 		}
