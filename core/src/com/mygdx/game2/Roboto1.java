@@ -168,11 +168,11 @@ public class Roboto1 extends Enemy {
     }
 
     private void moveFlyingRobot(int playerX) {
-        if (playerX > this.x) velX += .2;
-        else if (playerX < this.x) velX -= .2;
+        if (playerX > this.x) velX += .4;
+        else if (playerX < this.x) velX -= .4;
 
-        if (velX > 5) velX = 5;
-        else if (velX < -5) velX = -5;
+        if (velX > 2.5) velX = 2.5f;
+        else if (velX < -2.5) velX = -2.5f;
     }
 
     public boolean getDestroyed() {

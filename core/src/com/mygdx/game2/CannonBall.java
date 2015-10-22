@@ -18,6 +18,8 @@ public class CannonBall extends PlayerBullet {
         for (Enemy enemy : enemies) {
             if (rect.overlaps(enemy.getRect())) {
                 enemy.changeHealth(-15);
+                EnemyHitText hitText = new EnemyHitText(x,y,15);
+                anims.add(hitText);
                 destroyed = true;
                 EnemyHitSquareAnimation anim = new EnemyHitSquareAnimation();
                 anim.x = x;

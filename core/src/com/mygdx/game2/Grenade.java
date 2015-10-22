@@ -34,6 +34,8 @@ public class Grenade extends PlayerBullet {
         for (Enemy enemy : enemies) {
             if (rect.overlaps(enemy.getRect())) {
                 enemy.changeHealth(-4);
+                EnemyHitText hitText = new EnemyHitText(x,y,4);
+                anims.add(hitText);
                 velX = enemy.velX + (float)(velX * -.5);
                 velY = enemy.velY + (float)(velX * -.5);
                 EnemyHitSquareAnimation anim = new EnemyHitSquareAnimation();

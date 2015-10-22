@@ -30,11 +30,13 @@ public class PlayerFire extends PlayerBullet {
         for (Enemy enemy : enemies) {
             if (rect.overlaps(enemy.getRect())) {
                 enemy.changeHealth(-4);
+
                 destroyed = true;
                 EnemyHitSquareAnimation anim = new EnemyHitSquareAnimation();
                 anim.x = x;
                 anim.y = y;
-                anims.add(anim);
+                anims.add(anim);EnemyHitText hitText = new EnemyHitText(x,y,4);
+                anims.add(hitText);
             }
         }
         if (width < 0 || height < 0) {

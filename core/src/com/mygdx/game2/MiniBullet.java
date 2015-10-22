@@ -23,6 +23,9 @@ public class MiniBullet extends PlayerBullet {
                 anim.x = x;
                 anim.y = y;
                 anims.add(anim);
+
+                EnemyHitText hitText = new EnemyHitText(x,y,6);
+                anims.add(hitText);
             }
         }
     }

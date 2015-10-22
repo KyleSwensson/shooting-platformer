@@ -45,9 +45,11 @@ public class Explosion extends PlayerBullet {
             for (Enemy enemy : enemies) {
                 if (rect.overlaps(enemy.getRect())) {
                     enemy.changeHealth(-20);
+                    EnemyHitText hitText = new EnemyHitText((int)enemy.x,(int)enemy.y,20);
+                    anims.add(hitText);
                     EnemyHitSquareAnimation anim = new EnemyHitSquareAnimation();
-                    anim.x = x;
-                    anim.y = y;
+                    anim.x = (int)enemy.x;
+                    anim.y = (int)enemy.y;
                     anims.add(anim);
                     System.out.println("explosion hit an enemy");
                 }

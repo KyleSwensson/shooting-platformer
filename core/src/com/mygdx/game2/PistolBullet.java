@@ -20,6 +20,8 @@ public class PistolBullet extends PlayerBullet {
                     anim.x = x;
                     anim.y = y;
                     anims.add(anim);
+                    EnemyHitText hitText = new EnemyHitText(x,y,10);
+                    anims.add(hitText);
                 }
         }
     }

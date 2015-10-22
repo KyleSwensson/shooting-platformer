@@ -10,14 +10,23 @@ public class BaseTile {
     int y;
     int xDist; // distance from block to character x plane
     int yDist; // distance from block to character y plane
-    int drawDist = 500; // max distance from player that this should still be drawn and updated
+    int drawDist = 750; // max distance from player that this should still be drawn and updated
     boolean isActive; // boolean to tell whether it is too far away and should be drawn
     boolean passiveTile;
     boolean isFlipped = false;
     boolean isFlippedVertical = false;
-    int[] orientation = new int[4]; // int to tell the game which sides the block is covered on, 1000 is left 0100 is right 0010 is top 0001 is bottom
+
     String type;
 
+    int tileMapOffsetX; // offset in tilemap
+    int tileMapOffsetY; //offset in tilemap
+
+
+    //variables to assess whether the tile is covered on which of its sides
+    boolean coveredLeft = false;
+    boolean coveredRight = false;
+    boolean coveredTop = false;
+    boolean coveredBottom = false;
 
     int width = 32;
     int height = 32;
@@ -32,6 +41,10 @@ public class BaseTile {
         rect.y = y;
         rect.width = width;
         rect.height = height;
+        coveredLeft = false;
+        coveredRight = false;
+        coveredTop = false;
+        coveredBottom = false;
     }
 
     public void update(int playerX, int playerY) {

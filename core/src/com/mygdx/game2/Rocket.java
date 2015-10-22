@@ -26,6 +26,9 @@ public class Rocket extends PlayerBullet {
                 anim.y = y;
                 anims.add(anim);
 
+                EnemyHitText hitText = new EnemyHitText(x,y,15);
+                anims.add(hitText);
+
                 makeExplosion(playerBullets);
             }
         }

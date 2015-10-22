@@ -74,6 +74,7 @@ public class Player extends Character {
 
     public Player() {
         health = maxHealth;
+        fuel = maxFuel;
     }
 
     public void update(Array<PlayerBullet> bullets, Array<BaseTile> baseTiles, Array<Particle> particle1s, Array<Enemy> enemies, Array<Animation> anims, Array<Item> items, Array<EnemyBullet> enemyBullets) {
@@ -310,7 +311,7 @@ public class Player extends Character {
     private void checkRobotsHit(Array<Enemy> enemies, Array<Animation> anims, Array<EnemyBullet> enemyBullets) {
         if (!isHit) {
             for (Enemy enemy : enemies) {
-                if (this.rect.overlaps(enemy.getRect())) {
+                if (this.rect.overlaps(enemy.getRect()) && !enemy.enemyType.equals("safe")) {
                     isHit = true;
                     hitTime = 70;
                     health--;
