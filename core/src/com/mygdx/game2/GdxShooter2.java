@@ -377,40 +377,15 @@ public class GdxShooter2 extends ApplicationAdapter {
 							-p * 32 + (levelMap[1].length * 32));
 					tile.type = "grassTop";
 					baseTiles.add(tile);
-				} else if (levelMap[i][p] == 8) {
-					Roboto1 robot = new Roboto1();
-					robot.x =i*32 + 100;
-					robot.y = -p * 32 + (levelMap[1].length * 32);
-					robot.width = 32;
-					robot.height = 32;
-					robot.flying = false;
-					enemies.add(robot);
-				} else if (levelMap[i][p] == 9) {
-					BaseBox box = new BaseBox(i * 32 + 100, -p * 32 + (levelMap[1].length * 32),0,0,22,22);
-					enemies.add(box);
-
-
-					/*
-					SmartEnemy enemy = new SmartEnemy();
-					enemy.x = i * 32 + 100;
-					enemy.y = -p * 32 + (levelMap[1].length * 32);
-					enemy.width = 32;
-					enemy.height = 32;
-					enemies.add(enemy);
-					*/
-					/*
-					ShootingGuy enemy = new ShootingGuy();
-					enemy.x = i * 32 + 100;
-					enemy.y = -p * 32 + (levelMap[1].length * 32);
-					enemy.width = 32;
-					enemy.height = 32;
-					enemies.add(enemy);*/
 				} else if (levelMap[i][p] == 99) {
 					endGate = new Gate(i * 32 + 100,
 							-p * 32 + (levelMap[1].length * 32));
 				} else if (levelMap[i][p] == 100) {
 					player.x = i * 32 + 100;
 					player.y = -p * 32 + (levelMap[1].length * 32);
+
+					NewLevelText text = new NewLevelText(player.x, player.y + 50,currentLevel);
+					anims.add(text);
 				} else if (levelMap[i][p] == 80551) {
 					FlyBossHeart enemy = new FlyBossHeart((i*32 + 100), -p * 32 + (levelMap[1].length*32));
 					enemy.enemyType = "FlyBoss";
@@ -914,9 +889,6 @@ public class GdxShooter2 extends ApplicationAdapter {
 			bul.draw(batch);
 		}
 
-		for (Animation anim : anims) {
-			anim.draw(batch);
-		}
 
 		for (Item item : items) {
 			item.draw(batch);
@@ -956,11 +928,12 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 		for (BaseTile tile : baseTiles) {
 
-
 			if (tile.isActive) {
-					batch.draw(tileMapImg, (tile.x), (tile.y), tile.width, tile.height, tile.tileMapOffsetX, tile.tileMapOffsetY, 16, 16, tile.isFlipped, tile.isFlippedVertical);
-				}
+				batch.draw(tileMapImg, (tile.x), (tile.y), tile.width, tile.height, tile.tileMapOffsetX, tile.tileMapOffsetY, 16, 16, tile.isFlipped, tile.isFlippedVertical);
 			}
+		}
+
+
 
 
 
@@ -980,6 +953,10 @@ public class GdxShooter2 extends ApplicationAdapter {
 			else if (player.gunType == 4) batch.draw(cannonImg, player.x+ 6, player.y+ 5, 16,12, 0,0,18,14,true,false);
 
 		}
+
+		for (Animation anim : anims) {
+			anim.draw(batch);
+		}
 		batch.end();
 		hudBatch.begin();
 
@@ -991,6 +968,8 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 		hudBatch.draw(healthBarImg,750, 400,18,66*((float)player.health/(float)player.maxHealth));
 		hudBatch.draw(barHolderImg,750,400,18,66);
+
+
 
 		hudBatch.end();
 	}

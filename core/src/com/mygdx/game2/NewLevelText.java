@@ -7,36 +7,46 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 /**
  * Created by kyle on 10/22/2015.
  */
-public class EnemyHitText extends Animation {
+public class NewLevelText extends Animation {
 
     String text = new String();
     public int frameCount = 0;
-    public int framesDelete = 30;
+    public int framesDelete = 140;
     BitmapFont drawingText = new BitmapFont();
     float alpha;
+    int alphaTimer = 0;
+    int alphaTimerMax = 10;
 
-    public EnemyHitText(int x, int y, int damage) {
-        this.text = "-"+damage;
+    public NewLevelText(int x, int y, int level) {
+        this.text = "Level " + level;
         this.x = x;
         this.y = y;
         destroyed = false;
-        drawingText.setColor(Color.RED);
         alpha = 1.0f;
+        drawingText.getData().setScale(2,2);
     }
 
     public void update() {
+        alphaTimer++;
+        if (alphaTimer > alphaTimerMax) {
+            alpha -= .05f;
+            alphaTimer = 0;
+        }
         frameCount ++;
         if (frameCount > framesDelete) {
             destroyed = true;
         }
-        this.y += 1;
-        alpha -= .03f;
-        drawingText.setColor(1.0f,0f,0f,alpha);
+        drawingText.setColor(1.0f,1.0f,1.0f,alpha);
+
+        y += .25;
+
+        //TODO:this wont change anyrhing so change y to float instead of int
+        //ALSO TODO: have this slowly follow the player but not fast enough to catch up
+
     }
 
     public void draw(SpriteBatch batch) {
         drawingText.draw(batch,text,x,y);
-
     }
 
     public boolean getDestroyed() {
