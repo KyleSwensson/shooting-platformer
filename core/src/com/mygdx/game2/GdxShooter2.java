@@ -119,6 +119,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 	Texture healthBarImg;
 	Texture manaBarImg;
 	Texture barHolderImg;
+	Texture weaponSelectImg;
 
 	//textures for miscellaneous map items (gates, traps, doors etc.)
 	Texture endLevelDoorImg;
@@ -147,6 +148,9 @@ public class GdxShooter2 extends ApplicationAdapter {
 	private SpriteBatch hudBatch;
 	private SpriteBatch bgBatch;
 	private Player player;
+	private WeaponSelectTile wepSelect1;
+	private WeaponSelectTile wepSelect2;
+	private WeaponSelectTile wepSelect3;
 
 	public Array<PlayerBullet> playerBullets = new Array<PlayerBullet>();
 	public Array<EnemyBullet> enemyBullets = new Array<EnemyBullet>();
@@ -237,6 +241,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 		healthBarImg = new Texture("healthBarFull.png");
 		manaBarImg = new Texture("manaBarFull.png");
 		barHolderImg = new Texture("barHolder.png");
+		weaponSelectImg = new Texture("SPA/HUD/weaponBox.png");
 
 		//bg and other non-interactive textures
 		jungleBg = new Texture("jungleBg.png");
@@ -251,6 +256,11 @@ public class GdxShooter2 extends ApplicationAdapter {
 		player.y = (levelMap[1].length / 2) * 32;
 		player.width = 24;
 		player.height = 36;
+
+		wepSelect1 = new WeaponSelectTile(weaponSelectImg, 30, 30);
+		wepSelect2 = new WeaponSelectTile(weaponSelectImg,60,30);
+		wepSelect3 = new WeaponSelectTile(weaponSelectImg,90,30);
+
 
 		CreateEntireLevel();
 
@@ -747,6 +757,8 @@ public class GdxShooter2 extends ApplicationAdapter {
 		}
 
 		player.update(playerBullets, baseTiles, particle1s, enemies, anims, items, enemyBullets);
+		informWeaponSelectTiles();
+
 		shakeFrames += player.shakeFrames;
 
 		//shakeCamera
@@ -855,6 +867,18 @@ public class GdxShooter2 extends ApplicationAdapter {
 		}
 
 
+	}
+
+	private void informWeaponSelectTiles() {
+		wepSelect1.weaponNum = player.gunType - 1;
+		if (wepSelect1.weaponNum > 6) wepSelect1.weaponNum = 1;
+		else if (wepSelect1.weaponNum < 1) wepSelect1.weaponNum = 6;
+
+		wepSelect2.weaponNum = player.gunType;
+
+		wepSelect3.weaponNum = player.gunType + 1;
+		if (wepSelect3.weaponNum > 6) wepSelect3.weaponNum = 1;
+		else if (wepSelect3.weaponNum < 1) wepSelect3.weaponNum = 6;
 	}
 
 
@@ -968,6 +992,12 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 		hudBatch.draw(healthBarImg,750, 400,18,66*((float)player.health/(float)player.maxHealth));
 		hudBatch.draw(barHolderImg,750,400,18,66);
+
+		wepSelect1.draw(hudBatch);
+		wepSelect2.draw(hudBatch);
+		wepSelect3.draw(hudBatch);
+
+
 
 
 
