@@ -11,9 +11,11 @@ public class MiniBullet extends PlayerBullet {
     public Texture texture =  new Texture("machineGunBullet.png");
     public MiniBullet() {
         texture = new Texture("machineGunBullet.png");
+        width = 4;
+        height = 4;
     }
-    public void update(Array<PlayerBullet> playerBullets,Array<BaseTile> baseTiles, Array<Enemy> enemies, Array<Animation> anims) {
-        super.update(playerBullets, baseTiles, enemies, anims);
+    public void update(Array<PlayerBullet> playerBullets,Array<BaseTile> baseTiles, Array<Enemy> enemies, Array<Animation> anims, Array<Particle> particles) {
+        super.update(playerBullets, baseTiles, enemies, anims, particles);
         for (Enemy enemy : enemies) {
             if (rect.overlaps(enemy.getRect())) {
 

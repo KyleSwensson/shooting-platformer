@@ -31,7 +31,7 @@ public class Explosion extends PlayerBullet {
         rect = new Rectangle(0,0,width,height);
     }
 
-    public void update(Array<PlayerBullet> playerBullets,Array<BaseTile> baseTiles, Array<Enemy> enemies , Array<Animation> anims) {
+    public void update(Array<PlayerBullet> playerBullets,Array<BaseTile> baseTiles, Array<Enemy> enemies , Array<Animation> anims, Array<Particle> particles) {
         frameCount++;
 
         if (frameCount > framesSwitch) {

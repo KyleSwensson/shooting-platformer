@@ -65,6 +65,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 	BitmapFont levelText;
 	int levelTextX;
 	int levelTextY;
+	WeaponAmmoText ammoText;
 
 
 	//Textures for idle player
@@ -93,6 +94,8 @@ public class GdxShooter2 extends ApplicationAdapter {
 	Texture bullet1img;
 	Texture bullet2img;
 	Texture cannonBallImg;
+	Texture rocketImg;
+	Texture grenadeImg;
 
 	//Textures for particles
 	Texture particle1Img;
@@ -100,6 +103,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 	Texture flameParticleImg;
 	Texture experienceParticleImg;
 	Texture dustParticleImg;
+	Texture techParticleImg;
 
 	//Textures for tiles
 	Texture groundTileImg;
@@ -173,8 +177,8 @@ public class GdxShooter2 extends ApplicationAdapter {
 		bgBatch = new SpriteBatch();
 
 		levelText = new BitmapFont();
-		levelTextX = 100;
-		levelTextY = 100;
+		levelTextX = 30;
+		levelTextY = 330;
 
 		//Textures for idle player
 		playerIdleImgs[0] = new Texture("SPA/Player/Iddle/1.png");
@@ -218,6 +222,8 @@ public class GdxShooter2 extends ApplicationAdapter {
 		bullet1img = new Texture("bullet1.png");
 		bullet2img = new Texture("machineGunBullet.png");
 		cannonBallImg = new Texture("cannonBall.png");
+		rocketImg = new Texture("rocket.png");
+		grenadeImg = new Texture("grenade.png");
 
 		//Textures for particles
 		particle1Img = new Texture ("particle1.png");
@@ -225,6 +231,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 		flameParticleImg = new Texture("fireParticle.png");
 		experienceParticleImg = new Texture("experiencePellet.png");
 		dustParticleImg = new Texture("SPA/Player/player_dust.png");
+		techParticleImg = new Texture("techParticle.png");
 
 
 		//Textures for tiles
@@ -257,10 +264,10 @@ public class GdxShooter2 extends ApplicationAdapter {
 		player.width = 24;
 		player.height = 36;
 
-		wepSelect1 = new WeaponSelectTile(weaponSelectImg, 30, 30);
-		wepSelect2 = new WeaponSelectTile(weaponSelectImg,60,30);
-		wepSelect3 = new WeaponSelectTile(weaponSelectImg,90,30);
-
+		wepSelect1 = new WeaponSelectTile(weaponSelectImg, 30, 445,baseGunImg, flamethrowerImg, machineGunImg, cannonImg, rocketImg, grenadeImg);
+		wepSelect2 = new WeaponSelectTile(weaponSelectImg,60,445,baseGunImg, flamethrowerImg, machineGunImg, cannonImg, rocketImg, grenadeImg);
+		wepSelect3 = new WeaponSelectTile(weaponSelectImg,90,445, baseGunImg, flamethrowerImg, machineGunImg, cannonImg, rocketImg, grenadeImg);
+		ammoText = new WeaponAmmoText(30,430);
 
 		CreateEntireLevel();
 
@@ -792,7 +799,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 		for (int i = 0; i < playerBullets.size;){
 			PlayerBullet bullet = playerBullets.get(i);
-			bullet.update(playerBullets,baseTiles, enemies, anims);
+			bullet.update(playerBullets,baseTiles, enemies, anims, particle1s);
 
 			if (bullet.getDestroyed()){
 				int lastBullet = playerBullets.size-1;
@@ -948,6 +955,8 @@ public class GdxShooter2 extends ApplicationAdapter {
 				batch.draw(experienceParticleImg, part.x, part.y, 10, 10, 0, 0, 10, 10, false, false);
 			else if (part.partType.equals("dust"))
 				batch.draw(dustParticleImg, part.x, part.y, part.width,part.height);
+			else if (part.partType.equals("technology"))
+				batch.draw(techParticleImg, part.x, part.y, part.width,part.height);
 		}
 
 		for (BaseTile tile : baseTiles) {
@@ -984,14 +993,17 @@ public class GdxShooter2 extends ApplicationAdapter {
 		batch.end();
 		hudBatch.begin();
 
-		hudBatch.draw(manaBarImg, 730, 400, 18, (int) (66 * ((float) player.fuel / (float) player.maxFuel)));
+		hudBatch.draw(manaBarImg, 50, 347, 18, (int) (66 * ((float) player.fuel / (float) player.maxFuel)));
 
-		levelText.draw(hudBatch,"Level: " + currentLevel,levelTextX,levelTextY);
+		levelText.draw(hudBatch, "Level: " + currentLevel,levelTextX,levelTextY);
 
-		hudBatch.draw(barHolderImg, 730, 400,18,66);
+		hudBatch.draw(barHolderImg, 50, 347,18,66);
 
-		hudBatch.draw(healthBarImg,750, 400,18,66*((float)player.health/(float)player.maxHealth));
-		hudBatch.draw(barHolderImg,750,400,18,66);
+		drawAmmoText();
+
+
+		hudBatch.draw(healthBarImg,30, 347,18,66*((float)player.health/(float)player.maxHealth));
+		hudBatch.draw(barHolderImg,30,347,18,66);
 
 		wepSelect1.draw(hudBatch);
 		wepSelect2.draw(hudBatch);
@@ -1002,6 +1014,22 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 
 		hudBatch.end();
+	}
+
+	private void drawAmmoText() {
+		if (player.gunType == 1) {
+			ammoText.draw(hudBatch,696969,696969);
+		} else if (player.gunType == 2) {
+			ammoText.draw(hudBatch, player.flameAmmo,player.maxFlameAmmo);
+		} else if (player.gunType == 3) {
+			ammoText.draw(hudBatch, player.machineAmmo, player.maxMachineAmmo);
+		} else if (player.gunType == 4) {
+			ammoText.draw(hudBatch, player.cannonAmmo, player.maxCannonAmmo);
+		} else if (player.gunType == 5) {
+			ammoText.draw(hudBatch, player.rocketAmmo, player.maxRocketAmmo);
+		} else if (player.gunType == 6) {
+			ammoText.draw(hudBatch, player.grenadeAmmo, player.maxGrenadeAmmo);
+		}
 	}
 
 	public void drawPlayer() {

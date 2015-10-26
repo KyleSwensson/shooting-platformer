@@ -10,8 +10,13 @@ import com.badlogic.gdx.utils.Array;
 public class PistolBullet extends PlayerBullet {
 
     Texture texture = new Texture("bullet1.png");
-    public void update(Array<PlayerBullet> playerBullets,Array<BaseTile> baseTiles, Array<Enemy> enemies , Array<Animation> anims) {
-        super.update(playerBullets,baseTiles, enemies, anims);
+
+    public PistolBullet() {
+        width = 5;
+        height = 5;
+    }
+    public void update(Array<PlayerBullet> playerBullets,Array<BaseTile> baseTiles, Array<Enemy> enemies , Array<Animation> anims, Array<Particle> particles) {
+        super.update(playerBullets,baseTiles, enemies, anims, particles);
             for (Enemy enemy : enemies) {
                 if (rect.overlaps(enemy.getRect())) {
                     enemy.changeHealth(-10);

@@ -10,10 +10,11 @@ import com.badlogic.gdx.utils.Array;
 public class PlayerFire extends PlayerBullet {
     public Texture texture = new Texture("fireParticle.png");
     public PlayerFire () {
+        bulletType = "Flame";
         //texture = new Texture("fireParticle.png");
     }
-    public void update(Array<PlayerBullet> playerBullets,Array<BaseTile> baseTiles, Array<Enemy> enemies , Array<Animation> anims) {
-        super.update(playerBullets,baseTiles, enemies, anims);
+    public void update(Array<PlayerBullet> playerBullets,Array<BaseTile> baseTiles, Array<Enemy> enemies , Array<Animation> anims, Array<Particle> particles) {
+        super.update(playerBullets,baseTiles, enemies, anims, particles);
 
 
         if (velX > 0) velX -= .1;

@@ -31,6 +31,20 @@ public class Player extends Character {
     float bgXOffset = 0;
     float bgYOffset = 0;
 
+    int flameAmmo;
+    int maxFlameAmmo = 1000;
+    int machineAmmo;
+    int maxMachineAmmo = 400;
+    int cannonAmmo;
+    int maxCannonAmmo = 30;
+    int rocketAmmo;
+    int maxRocketAmmo = 15;
+    int grenadeAmmo;
+    int maxGrenadeAmmo = 8;
+
+
+
+
     int wallSlidingDustFrames = 0; // how many frames the player is sliding down a wall before dust is made
     int wallSlidingDustMax = 5;
 
@@ -75,6 +89,11 @@ public class Player extends Character {
     public Player() {
         health = maxHealth;
         fuel = maxFuel;
+        flameAmmo = maxFlameAmmo;
+        machineAmmo = maxMachineAmmo;
+        cannonAmmo = maxCannonAmmo;
+        rocketAmmo = maxRocketAmmo;
+        grenadeAmmo = maxGrenadeAmmo;
     }
 
     public void update(Array<PlayerBullet> bullets, Array<BaseTile> baseTiles, Array<Particle> particle1s, Array<Enemy> enemies, Array<Animation> anims, Array<Item> items, Array<EnemyBullet> enemyBullets) {
@@ -367,6 +386,7 @@ public class Player extends Character {
         if(Gdx.input.isKeyPressed(Input.Keys.Z)) {
             if (gunType == 1) {
                 if (bulletSpawnCounter > bullet1SpawnTime) {
+
                     shakeFrames = 2;
                     bulletSpawnCounter = 0;
                     if (facingRight) {
@@ -374,8 +394,7 @@ public class Player extends Character {
                         bullet.x = this.x;
                         bullet.y = this.y + 8;
                         bullet.velX = 12;
-                        bullet.width = 8;
-                        bullet.height = 8;
+
                         bullet.facingRight = true;
                         bullet.bulletType = "Normal";
                         bullets.add(bullet);
@@ -395,8 +414,7 @@ public class Player extends Character {
                         bullet.x = this.x;
                         bullet.y = this.y + 8;
                         bullet.velX = -12;
-                        bullet.width = 8;
-                        bullet.height = 8;
+
                         bullet.facingRight = false;
                         bullet.bulletType = "Normal";
                         bullets.add(bullet);
@@ -417,7 +435,9 @@ public class Player extends Character {
 
             }
             else if (gunType == 2) {
+
                     if (bulletSpawnCounter > flameSpawnTime) {
+                        flameAmmo --;
                         shakeFrames = 1;
                         bulletSpawnCounter = 0;
                         if (facingRight) {
@@ -452,7 +472,9 @@ public class Player extends Character {
                         }
                     }
             } else if (gunType == 3) {
+
                 if (bulletSpawnCounter > machineSpawnTime) {
+                    machineAmmo --;
                     shakeFrames = 2;
                     bulletSpawnCounter = 0;
                     if (facingRight) {
@@ -460,8 +482,7 @@ public class Player extends Character {
                         bullet.x = this.x;
                         bullet.y = this.y + 8;
                         bullet.velX = 12;
-                        bullet.width = 6;
-                        bullet.height = 6;
+
                         bullet.facingRight = true;
                         bullet.bulletType = "Mini";
                         bullets.add(bullet);
@@ -482,8 +503,7 @@ public class Player extends Character {
                         bullet.x = this.x;
                         bullet.y = this.y + 8;
                         bullet.velX = -12;
-                        bullet.width = 6;
-                        bullet.height = 6;
+
                         bullet.facingRight = false;
                         bullet.bulletType = "Mini";
                         bullets.add(bullet);
@@ -503,7 +523,9 @@ public class Player extends Character {
                     }
                 }
             } else if (gunType == 4) {
+
                 if (bulletSpawnCounter > cannonSpawnTime) {
+                    cannonAmmo --;
                     shakeFrames = 5;
                     bulletSpawnCounter = 0;
 
@@ -511,9 +533,7 @@ public class Player extends Character {
                         CannonBall bullet = new CannonBall();
                         bullet.x = this.x;
                         bullet.y = this.y + 8;
-                        bullet.velX = 8;
-                        bullet.width = 12;
-                        bullet.height = 12;
+                        bullet.velX = 4;
                         bullet.bulletType = "Cannon";
                         bullet.facingRight = true;
                         bullets.add(bullet);
@@ -537,9 +557,7 @@ public class Player extends Character {
                         CannonBall bullet = new CannonBall();
                         bullet.x = this.x;
                         bullet.y = this.y + 8;
-                        bullet.velX = -8;
-                        bullet.width = 12;
-                        bullet.height = 12;
+                        bullet.velX = -4;
                         bullet.bulletType = "Cannon";
 
 
@@ -564,10 +582,11 @@ public class Player extends Character {
                 }
 
             } else if (gunType == 5) {
+
                 if (bulletSpawnCounter > rocketSpawnTime) {
+                    rocketAmmo --;
                     shakeFrames = 6;
                     bulletSpawnCounter = 0;
-                    //TODO: make rocket spawn
                     if (facingRight) {
                         Rocket bullet = new Rocket();
                         bullet.x = this.x;
@@ -588,7 +607,9 @@ public class Player extends Character {
                     }
                 }
             } else if (gunType == 6) {
+
                 if (bulletSpawnCounter > grenadeSpawnTime) {
+                    grenadeAmmo --;
                     bulletSpawnCounter = 0;
                     if (facingRight) {
                         Grenade bullet = new Grenade();
