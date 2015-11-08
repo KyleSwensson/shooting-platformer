@@ -18,7 +18,7 @@ public class CannonBall extends PlayerBullet {
     public Texture texture = new Texture("cannonBall.png");
     public CannonBall () {
         texture = new Texture("cannonBall.png");
-        System.out.println("this ran");
+
         width = 24;
         height = 12;
         partSpawnTime = 0;

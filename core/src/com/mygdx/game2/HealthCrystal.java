@@ -173,13 +173,10 @@ public class HealthCrystal extends PlayerItem {
     }
 
     public void draw(SpriteBatch batch) {
-        //System.out.println("still drawing");
 
-        //if (animImage <= 3) {
+
         batch.draw(textures[animImage], x, y, width,height);
-        //System.out.println(x + " " + y + " " + width + " " + height);
-            //destroyed = true;
-        //}
+
 
     }
 }

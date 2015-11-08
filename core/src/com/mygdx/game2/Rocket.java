@@ -11,7 +11,6 @@ public class Rocket extends PlayerBullet {
     public Texture texture = new Texture("rocket.png");
     public Rocket () {
         texture = new Texture("rocket.png");
-        System.out.println("this ran");
         width = 24;
         height = 14;
         bulletType = "Rocket";

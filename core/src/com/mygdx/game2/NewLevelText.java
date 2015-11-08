@@ -17,13 +17,14 @@ public class NewLevelText extends Animation {
     int alphaTimer = 0;
     int alphaTimerMax = 10;
 
-    public NewLevelText(int x, int y, int level) {
+    public NewLevelText(int x, int y, int level, BitmapFont bmFont) {
         this.text = "Level " + level;
         this.x = x;
         this.y = y;
         destroyed = false;
         alpha = 1.0f;
-        drawingText.getData().setScale(2,2);
+        drawingText = bmFont;
+        drawingText.getData().setScale(1,1);
     }
 
     public void update() {

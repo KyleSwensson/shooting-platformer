@@ -9,15 +9,51 @@ import com.badlogic.gdx.utils.Array;
  */
 public class PistolBullet extends PlayerBullet {
 
-    Texture texture = new Texture("bullet1.png");
+    Texture texture1 = new Texture("machineGunBullet3.png");
+    Texture texture2 = new Texture("machineGunBullet4.png");
+    Texture texture3 = new Texture("machineGunBullet5.png");
+    Texture texture4 = new Texture("machineGunBullet6.png");
+    Texture texture5 = new Texture("machineGunBullet7.png");
+    Texture texture6 = new Texture("machineGunBullet8.png");
+
+
+    int initialFrameCount;
+    int frameCount = 0;
+    int framesSwitch = 0;
+    int animImage = 0;
+
+
+    Texture[] textures = {texture1, texture2,texture3, texture4, texture5, texture6};
+
 
     public PistolBullet() {
-        width = 5;
-        height = 5;
+        width = 20;
+        height = 10;
     }
     public void update(Array<PlayerBullet> playerBullets,Array<BaseTile> baseTiles, Array<Enemy> enemies , Array<Animation> anims, Array<Particle> particles) {
+
+
+
         super.update(playerBullets,baseTiles, enemies, anims, particles);
-            for (Enemy enemy : enemies) {
+
+        initialFrameCount++;
+
+        if (initialFrameCount > 15) {
+            frameCount++;
+            if (frameCount > framesSwitch) {
+                animImage++;
+                frameCount = 0;
+                if (animImage > 5) {
+                    destroyed = true;
+                }
+            }
+        }
+
+
+
+
+
+        for (Enemy enemy : enemies) {
                 if (rect.overlaps(enemy.getRect())) {
                     enemy.changeHealth(-10);
                     destroyed = true;
@@ -32,6 +68,6 @@ public class PistolBullet extends PlayerBullet {
     }
 
     public void draw(SpriteBatch batch) {
-        batch.draw(texture, x, y, width, height, 0, 0, (int)width, (int)height, !facingRight, false);
+        batch.draw(textures[animImage], x, y, width, height, 0, 0, (int)width/2, (int)height/2, !facingRight, false);
     }
 }

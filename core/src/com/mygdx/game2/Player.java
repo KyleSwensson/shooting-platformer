@@ -296,7 +296,7 @@ public class Player extends Character {
         for (Bullet bullet : bullets) {
             if (bullet.enemyBullet) {
                 if (bullet.rect.overlaps(rect)) {
-                    System.out.println("hit");
+
                 }
             }
         }

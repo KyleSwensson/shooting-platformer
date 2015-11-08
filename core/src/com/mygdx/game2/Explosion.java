@@ -51,7 +51,6 @@ public class Explosion extends PlayerBullet {
                     anim.x = (int)enemy.x;
                     anim.y = (int)enemy.y;
                     anims.add(anim);
-                    System.out.println("explosion hit an enemy");
                 }
             }
         }

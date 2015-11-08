@@ -67,6 +67,8 @@ public class GdxShooter2 extends ApplicationAdapter {
 	int levelTextY;
 	WeaponAmmoText ammoText;
 
+	BitmapFont bitFont;
+
 
 	//Textures for idle player
 	Texture[] playerIdleImgs = new Texture[4];
@@ -122,8 +124,16 @@ public class GdxShooter2 extends ApplicationAdapter {
 	//Textures for GUI items
 	Texture healthBarImg;
 	Texture manaBarImg;
-	Texture barHolderImg;
+	Texture healthbarHolderImg;
+	Texture manabarHolderImg;
 	Texture weaponSelectImg;
+
+	Texture fireIconImg;
+	Texture grenadeIconImg;
+	Texture heavyIconImg;
+	Texture machineGunIconImg;
+	Texture pistolIconImg;
+	Texture rocketIconImg;
 
 	//textures for miscellaneous map items (gates, traps, doors etc.)
 	Texture endLevelDoorImg;
@@ -170,6 +180,9 @@ public class GdxShooter2 extends ApplicationAdapter {
 	
 	@Override
 	public void create () {
+
+
+		bitFont = new BitmapFont(Gdx.files.internal("SPA/font.fnt"), false);
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false,800,480);
 		batch = new SpriteBatch();
@@ -247,8 +260,15 @@ public class GdxShooter2 extends ApplicationAdapter {
 		//Textures for GUI items
 		healthBarImg = new Texture("healthBarFull.png");
 		manaBarImg = new Texture("manaBarFull.png");
-		barHolderImg = new Texture("barHolder.png");
+		healthbarHolderImg = new Texture("manaBarHolder.png");
+		manabarHolderImg = new Texture("healthBarHolder.png");
 		weaponSelectImg = new Texture("SPA/HUD/weaponBox.png");
+		fireIconImg = new Texture("SPA/HUD/fireIcon.png");
+		grenadeIconImg = new Texture("SPA/HUD/grenadeIcon.png");
+		heavyIconImg = new Texture("SPA/HUD/heavyIcon.png");
+		machineGunIconImg = new Texture("SPA/HUD/machineGunIcon.png");
+		rocketIconImg = new Texture("SPA/HUD/rocketIcon.png");
+		pistolIconImg = new Texture("SPA/HUD/pistolIcon.png");
 
 		//bg and other non-interactive textures
 		jungleBg = new Texture("jungleBg.png");
@@ -264,9 +284,9 @@ public class GdxShooter2 extends ApplicationAdapter {
 		player.width = 24;
 		player.height = 36;
 
-		wepSelect1 = new WeaponSelectTile(weaponSelectImg, 30, 445,baseGunImg, flamethrowerImg, machineGunImg, cannonImg, rocketImg, grenadeImg);
-		wepSelect2 = new WeaponSelectTile(weaponSelectImg,60,445,baseGunImg, flamethrowerImg, machineGunImg, cannonImg, rocketImg, grenadeImg);
-		wepSelect3 = new WeaponSelectTile(weaponSelectImg,90,445, baseGunImg, flamethrowerImg, machineGunImg, cannonImg, rocketImg, grenadeImg);
+		wepSelect1 = new WeaponSelectTile(weaponSelectImg, 30, 445,pistolIconImg, fireIconImg, machineGunIconImg, heavyIconImg, rocketIconImg, grenadeIconImg);
+		wepSelect2 = new WeaponSelectTile(weaponSelectImg,60,445,pistolIconImg, fireIconImg, machineGunIconImg, heavyIconImg, rocketIconImg, grenadeIconImg);
+		wepSelect3 = new WeaponSelectTile(weaponSelectImg,90,445,pistolIconImg, fireIconImg, machineGunIconImg, heavyIconImg, rocketIconImg, grenadeIconImg);
 		ammoText = new WeaponAmmoText(30,430);
 
 		CreateEntireLevel();
@@ -401,7 +421,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 					player.x = i * 32 + 100;
 					player.y = -p * 32 + (levelMap[1].length * 32);
 
-					NewLevelText text = new NewLevelText(player.x, player.y + 50,currentLevel);
+					NewLevelText text = new NewLevelText(player.x, player.y + 50,currentLevel, bitFont);
 					anims.add(text);
 				} else if (levelMap[i][p] == 80551) {
 					FlyBossHeart enemy = new FlyBossHeart((i*32 + 100), -p * 32 + (levelMap[1].length*32));
@@ -785,10 +805,10 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 		for (int i = 0; i < items.size;){
 			Item item = items.get(i);
-			System.out.println("updating box");
+
 			item.update(baseTiles, player.rect);
 			if (item.getDestroyed()){
-				System.out.println("destroying");
+
 				int lastItem = items.size-1;
 				items.set(i, items.get(lastItem));
 				items.removeIndex(lastItem);
@@ -993,17 +1013,17 @@ public class GdxShooter2 extends ApplicationAdapter {
 		batch.end();
 		hudBatch.begin();
 
-		hudBatch.draw(manaBarImg, 50, 347, 18, (int) (66 * ((float) player.fuel / (float) player.maxFuel)));
+		hudBatch.draw(manaBarImg, 52, 349, 16, (int) (66 * ((float) player.fuel / (float) player.maxFuel)));
 
 		levelText.draw(hudBatch, "Level: " + currentLevel,levelTextX,levelTextY);
 
-		hudBatch.draw(barHolderImg, 50, 347,18,66);
+		hudBatch.draw(manabarHolderImg, 50, 347,20,68);
 
 		drawAmmoText();
 
 
-		hudBatch.draw(healthBarImg,30, 347,18,66*((float)player.health/(float)player.maxHealth));
-		hudBatch.draw(barHolderImg,30,347,18,66);
+		hudBatch.draw(healthBarImg,32, 349,16,66*((float)player.health/(float)player.maxHealth));
+		hudBatch.draw(healthbarHolderImg,30,347,20,68);
 
 		wepSelect1.draw(hudBatch);
 		wepSelect2.draw(hudBatch);

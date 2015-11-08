@@ -1,5 +1,6 @@
 package com.mygdx.game2;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -12,7 +13,7 @@ public class EnemyHitText extends Animation {
     String text = new String();
     public int frameCount = 0;
     public int framesDelete = 30;
-    BitmapFont drawingText = new BitmapFont();
+    BitmapFont drawingText = new BitmapFont(Gdx.files.internal("SPA/font.fnt"), false);
     float alpha;
 
     public EnemyHitText(int x, int y, int damage) {
@@ -20,8 +21,10 @@ public class EnemyHitText extends Animation {
         this.x = x;
         this.y = y;
         destroyed = false;
+
         drawingText.setColor(Color.RED);
         alpha = 1.0f;
+        drawingText.getData().setScale(.5f,.5f);
     }
 
     public void update() {
