@@ -434,7 +434,7 @@ public class Player extends Character {
 
 
             }
-            else if (gunType == 2) {
+            else if (gunType == 2 && flameAmmo > 0) {
 
                     if (bulletSpawnCounter > flameSpawnTime) {
                         flameAmmo --;
@@ -471,7 +471,7 @@ public class Player extends Character {
 
                         }
                     }
-            } else if (gunType == 3) {
+            } else if (gunType == 3 && machineAmmo > 0) {
 
                 if (bulletSpawnCounter > machineSpawnTime) {
                     machineAmmo --;
@@ -522,7 +522,7 @@ public class Player extends Character {
                         particle1s.add(part);
                     }
                 }
-            } else if (gunType == 4) {
+            } else if (gunType == 4 && cannonAmmo > 0) {
 
                 if (bulletSpawnCounter > cannonSpawnTime) {
                     cannonAmmo --;
@@ -581,7 +581,7 @@ public class Player extends Character {
                     }
                 }
 
-            } else if (gunType == 5) {
+            } else if (gunType == 5 && rocketAmmo > 0) {
 
                 if (bulletSpawnCounter > rocketSpawnTime) {
                     rocketAmmo --;
@@ -606,7 +606,7 @@ public class Player extends Character {
                         bullets.add(bullet);
                     }
                 }
-            } else if (gunType == 6) {
+            } else if (gunType == 6 && grenadeAmmo > 0) {
 
                 if (bulletSpawnCounter > grenadeSpawnTime) {
                     grenadeAmmo --;
