@@ -43,6 +43,9 @@ have gun be a seperate entity drawn over top of the character, not drawn into ch
 long sprawling, randomized levels. take the cave randomization generator from my old flash game that was too slow to run
 
 
+//TODO: okay so when you leave a level of the dungeon you go to a intermission level like the tiny ones in spelunky but it has a door to a shop in it
+//TODO: i dunno what ima do abt item room rn cause that shit spawning still broken
+
 
 
 */
@@ -59,7 +62,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 	int[][] bgMap = new int[levelMap.length / 4][levelMap[0].length / 4];
 
 
-	int currentLevel = 0;
+	int currentLevel = 1;
 	int maxLevelReached = 0;
 
 	BitmapFont levelText;
@@ -772,6 +775,8 @@ public class GdxShooter2 extends ApplicationAdapter {
 			makeNewGame();
 		}
 
+
+		//TODO: This is a testing feature, It should be removed upon release
 		if (Gdx.input.isKeyPressed(Input.Keys.P)) {
 			camera.zoom += .02;
 		} else if (Gdx.input.isKeyPressed(Input.Keys.O)) {
@@ -779,8 +784,9 @@ public class GdxShooter2 extends ApplicationAdapter {
 		}
 
 		if (player.rect.overlaps(endGate.rect)) {
-			generateNewLevel();
 			currentLevel ++;
+			generateNewLevel();
+
 		}
 
 		player.update(playerBullets, baseTiles, particle1s, enemies, anims, items, enemyBullets);
@@ -1066,6 +1072,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 		}
 	}
 
+	//resets level and player's health, makes a new level
 	public void makeNewGame() {
 		player.gameOver = false;
 		System.out.println("Game Over!");
@@ -1074,12 +1081,13 @@ public class GdxShooter2 extends ApplicationAdapter {
 			System.out.println("New high score!");
 			maxLevelReached = currentLevel;
 		}
-		currentLevel = 0;
+		currentLevel = 1;
 		player.health = 10;
 		System.out.println("Max level reached:" + maxLevelReached);
 		generateNewLevel();
 	}
 
+	//clears all items from map and resets player's position
 	public void generateNewLevel() {
 		robot1s.clear();
 		enemies.clear();

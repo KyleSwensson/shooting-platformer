@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="shooting-platformer" default="all">
+  
+  
+  <property file="shooting-platformer.properties"/>
+  <!-- Uncomment the following property if no tests compilation is needed -->
+  <!-- 
+  <property name="skip.tests" value="true"/>
+   -->
+  
+  <!-- Compiler options -->
+  
+  <property name="compiler.debug" value="on"/>
+  <property name="compiler.generate.no.warnings" value="off"/>
+  <property name="compiler.args" value=""/>
+  <property name="compiler.max.memory" value="700m"/>
+  <patternset id="ignored.files">
+    <exclude name="**/*.hprof/**"/>
+    <exclude name="**/*.pyc/**"/>
+    <exclude name="**/*.pyo/**"/>
+    <exclude name="**/*.rbc/**"/>
+    <exclude name="**/*~/**"/>
+    <exclude name="**/.DS_Store/**"/>
+    <exclude name="**/.git/**"/>
+    <exclude name="**/.hg/**"/>
+    <exclude name="**/.svn/**"/>
+    <exclude name="**/CVS/**"/>
+    <exclude name="**/RCS/**"/>
+    <exclude name="**/SCCS/**"/>
+    <exclude name="**/__pycache__/**"/>
+    <exclude name="**/_svn/**"/>
+    <exclude name="**/rcs/**"/>
+    <exclude name="**/vssver.scc/**"/>
+    <exclude name="**/vssver2.scc/**"/>
+  </patternset>
+  <patternset id="library.patterns">
+    <include name="*.war"/>
+    <include name="*.swc"/>
+    <include name="*.apk"/>
+    <include name="*.zip"/>
+    <include name="*.ear"/>
+    <include name="*.egg"/>
+    <include name="*.ane"/>
+    <include name="*.jar"/>
+  </patternset>
+  <patternset id="compiler.resources">
+    <exclude name="**/?*.java"/>
+    <exclude name="**/?*.form"/>
+    <exclude name="**/?*.class"/>
+    <exclude name="**/?*.groovy"/>
+    <exclude name="**/?*.scala"/>
+    <exclude name="**/?*.flex"/>
+    <exclude name="**/?*.kt"/>
+    <exclude name="**/?*.clj"/>
+    <exclude name="**/?*.aj"/>
+  </patternset>
+  
+  <!-- JDK definitions -->
+  
+  <property name="jdk.bin.1.8" value="${jdk.home.1.8}/bin"/>
+  <path id="jdk.classpath.1.8">
+    <fileset dir="${jdk.home.1.8}">
+      <include name="jre/lib/charsets.jar"/>
+      <include name="jre/lib/deploy.jar"/>
+      <include name="jre/lib/ext/access-bridge-64.jar"/>
+      <include name="jre/lib/ext/cldrdata.jar"/>
+      <include name="jre/lib/ext/dnsns.jar"/>
+      <include name="jre/lib/ext/jaccess.jar"/>
+      <include name="jre/lib/ext/jfxrt.jar"/>
+      <include name="jre/lib/ext/localedata.jar"/>
+      <include name="jre/lib/ext/nashorn.jar"/>
+      <include name="jre/lib/ext/sunec.jar"/>
+      <include name="jre/lib/ext/sunjce_provider.jar"/>
+      <include name="jre/lib/ext/sunmscapi.jar"/>
+      <include name="jre/lib/ext/sunpkcs11.jar"/>
+      <include name="jre/lib/ext/zipfs.jar"/>
+      <include name="jre/lib/javaws.jar"/>
+      <include name="jre/lib/jce.jar"/>
+      <include name="jre/lib/jfr.jar"/>
+      <include name="jre/lib/jfxswt.jar"/>
+      <include name="jre/lib/jsse.jar"/>
+      <include name="jre/lib/management-agent.jar"/>
+      <include name="jre/lib/plugin.jar"/>
+      <include name="jre/lib/resources.jar"/>
+      <include name="jre/lib/rt.jar"/>
+    </fileset>
+  </path>
+  
+  <property name="project.jdk.home" value="${jdk.home.1.8}"/>
+  <property name="project.jdk.bin" value="${jdk.bin.1.8}"/>
+  <property name="project.jdk.classpath" value="jdk.classpath.1.8"/>
+  <!-- Register Custom Compiler Taskdefs -->
+  <property name="javac2.home" value="${idea.home}/lib"/>
+  <path id="javac2.classpath">
+    <pathelement location="${javac2.home}/javac2.jar"/>
+    <pathelement location="${javac2.home}/jdom.jar"/>
+    <pathelement location="${javac2.home}/asm-all.jar"/>
+    <pathelement location="${javac2.home}/jgoodies-forms.jar"/>
+  </path>
+  <target name="register.custom.compilers">
+    <taskdef name="javac2" classname="com.intellij.ant.Javac2" classpathref="javac2.classpath"/>
+    <taskdef name="instrumentIdeaExtensions" classname="com.intellij.ant.InstrumentIdeaExtensions" classpathref="javac2.classpath"/>
+  </target>
+  
+  <!-- Modules -->
+  
+  
+  <!-- Module core -->
+  
+  <dirname property="module.core.basedir" file="${ant.file}"/>
+  
+  
+  <property name="module.jdk.home.core" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.core" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.core" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.core" value="-encoding UTF-8 -source 1.6 -target 1.6 ${compiler.args}"/>
+  
+  <property name="core.output.dir" value="${module.core.basedir}/core/build/classes/main"/>
+  <property name="core.testoutput.dir" value="${module.core.basedir}/core/build/classes/test"/>
+  
+  <path id="core.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="core.module.production.classpath">
+    <path refid="${module.jdk.classpath.core}"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx/1.6.5/b56ebcc34d39c4bb0a828c5ed04f46a04314bb4d/gdx-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-box2d/1.6.5/d81b49d6bc9aa29518fcaa7db9474fe7405fa324/gdx-box2d-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-bullet/1.6.5/eedc0a26b29434b7ed4e9fc6256dc86c4b2e1814/gdx-bullet-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-ai/1.5.0/5f694a1d54a6e15884ac50b83b7927df771d69b0/gdx-ai-1.5.0.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.box2dlights/box2dlights/1.4/3d77ad5b4164fb32fc67e2446e35911bb0aaf0bd/box2dlights-1.4.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-freetype/1.6.5/d4e6c84d0b2f4a2c0dc1c0a1ba036df54670868a/gdx-freetype-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers/1.6.5/c7fbf76516b2ff2f9a8c13e0f8f23fe43d0a0ee6/gdx-controllers-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.ashley/ashley/1.6.0/f7b513df3e52198ecda822eea1674f488d7352a5/ashley-1.6.0.jar"/>
+  </path>
+  
+  <path id="core.runtime.production.module.classpath">
+    <pathelement location="${core.output.dir}"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx/1.6.5/b56ebcc34d39c4bb0a828c5ed04f46a04314bb4d/gdx-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-box2d/1.6.5/d81b49d6bc9aa29518fcaa7db9474fe7405fa324/gdx-box2d-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-bullet/1.6.5/eedc0a26b29434b7ed4e9fc6256dc86c4b2e1814/gdx-bullet-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-ai/1.5.0/5f694a1d54a6e15884ac50b83b7927df771d69b0/gdx-ai-1.5.0.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.box2dlights/box2dlights/1.4/3d77ad5b4164fb32fc67e2446e35911bb0aaf0bd/box2dlights-1.4.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-freetype/1.6.5/d4e6c84d0b2f4a2c0dc1c0a1ba036df54670868a/gdx-freetype-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers/1.6.5/c7fbf76516b2ff2f9a8c13e0f8f23fe43d0a0ee6/gdx-controllers-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.ashley/ashley/1.6.0/f7b513df3e52198ecda822eea1674f488d7352a5/ashley-1.6.0.jar"/>
+  </path>
+  
+  <path id="core.module.classpath">
+    <path refid="${module.jdk.classpath.core}"/>
+    <pathelement location="${core.output.dir}"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx/1.6.5/b56ebcc34d39c4bb0a828c5ed04f46a04314bb4d/gdx-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-box2d/1.6.5/d81b49d6bc9aa29518fcaa7db9474fe7405fa324/gdx-box2d-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-bullet/1.6.5/eedc0a26b29434b7ed4e9fc6256dc86c4b2e1814/gdx-bullet-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-ai/1.5.0/5f694a1d54a6e15884ac50b83b7927df771d69b0/gdx-ai-1.5.0.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.box2dlights/box2dlights/1.4/3d77ad5b4164fb32fc67e2446e35911bb0aaf0bd/box2dlights-1.4.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-freetype/1.6.5/d4e6c84d0b2f4a2c0dc1c0a1ba036df54670868a/gdx-freetype-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers/1.6.5/c7fbf76516b2ff2f9a8c13e0f8f23fe43d0a0ee6/gdx-controllers-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.ashley/ashley/1.6.0/f7b513df3e52198ecda822eea1674f488d7352a5/ashley-1.6.0.jar"/>
+  </path>
+  
+  <path id="core.runtime.module.classpath">
+    <pathelement location="${core.testoutput.dir}"/>
+    <pathelement location="${core.output.dir}"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx/1.6.5/b56ebcc34d39c4bb0a828c5ed04f46a04314bb4d/gdx-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-box2d/1.6.5/d81b49d6bc9aa29518fcaa7db9474fe7405fa324/gdx-box2d-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-bullet/1.6.5/eedc0a26b29434b7ed4e9fc6256dc86c4b2e1814/gdx-bullet-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-ai/1.5.0/5f694a1d54a6e15884ac50b83b7927df771d69b0/gdx-ai-1.5.0.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.box2dlights/box2dlights/1.4/3d77ad5b4164fb32fc67e2446e35911bb0aaf0bd/box2dlights-1.4.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-freetype/1.6.5/d4e6c84d0b2f4a2c0dc1c0a1ba036df54670868a/gdx-freetype-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers/1.6.5/c7fbf76516b2ff2f9a8c13e0f8f23fe43d0a0ee6/gdx-controllers-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.ashley/ashley/1.6.0/f7b513df3e52198ecda822eea1674f488d7352a5/ashley-1.6.0.jar"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.core">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.core">
+    <patternset refid="excluded.from.module.core"/>
+  </patternset>
+  
+  <path id="core.module.sourcepath">
+    <dirset dir="${module.core.basedir}/core">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.core" depends="compile.module.core.production,compile.module.core.tests" description="Compile module core"/>
+  
+  <target name="compile.module.core.production" depends="register.custom.compilers" description="Compile module core; production classes">
+    <mkdir dir="${core.output.dir}"/>
+    <javac2 destdir="${core.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.core}/javac">
+      <compilerarg line="${compiler.args.core}"/>
+      <bootclasspath refid="core.module.bootclasspath"/>
+      <classpath refid="core.module.production.classpath"/>
+      <src refid="core.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.core"/>
+    </javac2>
+    
+    <copy todir="${core.output.dir}">
+      <fileset dir="${module.core.basedir}/core/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.core.tests" depends="register.custom.compilers,compile.module.core.production" description="compile module core; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.core" description="cleanup module">
+    <delete dir="${core.output.dir}"/>
+    <delete dir="${core.testoutput.dir}"/>
+  </target>
+  
+  
+  <!-- Module shooting-platformer -->
+  
+  <dirname property="module.shooting-platformer.basedir" file="${ant.file}"/>
+  
+  
+  <property name="module.jdk.home.shooting-platformer" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.shooting-platformer" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.shooting-platformer" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.shooting-platformer" value="-encoding UTF-8 -source 1.6 -target 1.6 ${compiler.args}"/>
+  
+  <property name="shooting-platformer.output.dir" value="${module.shooting-platformer.basedir}/build"/>
+  <property name="shooting-platformer.testoutput.dir" value="${module.shooting-platformer.basedir}/build"/>
+  
+  <path id="shooting-platformer.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="shooting-platformer.module.production.classpath">
+    <path refid="${module.jdk.classpath.shooting-platformer}"/>
+  </path>
+  
+  <path id="shooting-platformer.runtime.production.module.classpath">
+    <pathelement location="${shooting-platformer.output.dir}"/>
+  </path>
+  
+  <path id="shooting-platformer.module.classpath">
+    <path refid="${module.jdk.classpath.shooting-platformer}"/>
+    <pathelement location="${shooting-platformer.output.dir}"/>
+  </path>
+  
+  <path id="shooting-platformer.runtime.module.classpath">
+    <pathelement location="${shooting-platformer.output.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.shooting-platformer">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.shooting-platformer">
+    <patternset refid="excluded.from.module.shooting-platformer"/>
+  </patternset>
+  
+  
+  <target name="compile.module.shooting-platformer" depends="compile.module.shooting-platformer.production,compile.module.shooting-platformer.tests" description="Compile module shooting-platformer"/>
+  
+  <target name="compile.module.shooting-platformer.production" depends="register.custom.compilers" description="Compile module shooting-platformer; production classes"/>
+  
+  <target name="compile.module.shooting-platformer.tests" depends="register.custom.compilers,compile.module.shooting-platformer.production" description="compile module shooting-platformer; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.shooting-platformer" description="cleanup module">
+    <delete dir="${shooting-platformer.output.dir}"/>
+    <delete dir="${shooting-platformer.testoutput.dir}"/>
+  </target>
+  
+  
+  <!-- Module desktop -->
+  
+  <dirname property="module.desktop.basedir" file="${ant.file}"/>
+  
+  
+  <property name="module.jdk.home.desktop" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.desktop" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.desktop" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.desktop" value="-encoding UTF-8 -source 1.6 -target 1.6 ${compiler.args}"/>
+  
+  <property name="desktop.output.dir" value="${module.desktop.basedir}/desktop/build/classes/main"/>
+  <property name="desktop.testoutput.dir" value="${module.desktop.basedir}/desktop/build/classes/test"/>
+  
+  <path id="desktop.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="desktop.module.production.classpath">
+    <path refid="${module.jdk.classpath.desktop}"/>
+    <pathelement location="${core.output.dir}"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx/1.6.5/b56ebcc34d39c4bb0a828c5ed04f46a04314bb4d/gdx-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-box2d/1.6.5/d81b49d6bc9aa29518fcaa7db9474fe7405fa324/gdx-box2d-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-bullet/1.6.5/eedc0a26b29434b7ed4e9fc6256dc86c4b2e1814/gdx-bullet-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-ai/1.5.0/5f694a1d54a6e15884ac50b83b7927df771d69b0/gdx-ai-1.5.0.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.box2dlights/box2dlights/1.4/3d77ad5b4164fb32fc67e2446e35911bb0aaf0bd/box2dlights-1.4.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-freetype/1.6.5/d4e6c84d0b2f4a2c0dc1c0a1ba036df54670868a/gdx-freetype-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers/1.6.5/c7fbf76516b2ff2f9a8c13e0f8f23fe43d0a0ee6/gdx-controllers-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.ashley/ashley/1.6.0/f7b513df3e52198ecda822eea1674f488d7352a5/ashley-1.6.0.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-backend-lwjgl/1.6.5/3b435f75bbc525be3d6aba5a2ae888a20e65c9ca/gdx-backend-lwjgl-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-platform/1.6.5/e36705dc77ff6d585be5f7c78f85fe94ea278d7a/gdx-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-box2d-platform/1.6.5/57a4b297f467f98904fb210733bb0eb11576421f/gdx-box2d-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-bullet-platform/1.6.5/5654125b7635b68efb1f49241caabc9a45add217/gdx-bullet-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-tools/1.6.5/7df03792152a3ed5352ec10bdb3e13ec58c7860f/gdx-tools-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-freetype-platform/1.6.5/24c9e1a05729e32000191eabaffa7c2f4a525f3e/gdx-freetype-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers-desktop/1.6.5/2c7fcf5e43f4c971a1095b36bd037c98a07219f8/gdx-controllers-desktop-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers-platform/1.6.5/21fde56e7ad283863b3c764d2d53c24c815345ae/gdx-controllers-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx/1.6.5/b56ebcc34d39c4bb0a828c5ed04f46a04314bb4d/gdx-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-bullet/1.6.5/eedc0a26b29434b7ed4e9fc6256dc86c4b2e1814/gdx-bullet-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers/1.6.5/c7fbf76516b2ff2f9a8c13e0f8f23fe43d0a0ee6/gdx-controllers-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl/2.9.2/a9d80fe5935c7a9149f6584d9777cfd471f65489/lwjgl-2.9.2.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl_util/2.9.2/4b9e37300a87799856e0bd15ed81663cdb6b0947/lwjgl_util-2.9.2.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.jlayer/jlayer/1.0.1-gdx/7cca83cec5c1b2f011362f4d85aabd71a73b049d/jlayer-1.0.1-gdx.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.jcraft/jorbis/0.0.17/8872d22b293e8f5d7d56ff92be966e6dc28ebdc6/jorbis-0.0.17.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-backend-headless/1.6.5/5e9dd1183cf3ddba7fe6499eacf85fa77f2cad89/gdx-backend-headless-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl-platform/2.9.2/510c7d317f5e9e700b9cfaac5fd38bdebf0702e0/lwjgl-platform-2.9.2-natives-windows.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl-platform/2.9.2/d276cdf61fe2b516c7b7f4aa1b8dea91dbdc8d56/lwjgl-platform-2.9.2-natives-linux.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl-platform/2.9.2/d55b46b40b40249d627a83a7f7f22649709d70c3/lwjgl-platform-2.9.2-natives-osx.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jinput/jinput/2.0.5/39c7796b469a600f72380316f6b1f11db6c2c7c4/jinput-2.0.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jutils/jutils/1.0.0/e12fe1fda814bd348c1579329c86943d2cd3c6a6/jutils-1.0.0.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jinput/jinput-platform/2.0.5/7ff832a6eb9ab6a767f1ade2b548092d0fa64795/jinput-platform-2.0.5-natives-linux.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jinput/jinput-platform/2.0.5/385ee093e01f587f30ee1c8a2ee7d408fd732e16/jinput-platform-2.0.5-natives-windows.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jinput/jinput-platform/2.0.5/53f9c919f34d2ca9de8c51fc4e1e8282029a9232/jinput-platform-2.0.5-natives-osx.jar"/>
+  </path>
+  
+  <path id="desktop.runtime.production.module.classpath">
+    <pathelement location="${desktop.output.dir}"/>
+    <path refid="core.runtime.production.module.classpath"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-backend-lwjgl/1.6.5/3b435f75bbc525be3d6aba5a2ae888a20e65c9ca/gdx-backend-lwjgl-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-platform/1.6.5/e36705dc77ff6d585be5f7c78f85fe94ea278d7a/gdx-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-box2d-platform/1.6.5/57a4b297f467f98904fb210733bb0eb11576421f/gdx-box2d-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-bullet-platform/1.6.5/5654125b7635b68efb1f49241caabc9a45add217/gdx-bullet-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-tools/1.6.5/7df03792152a3ed5352ec10bdb3e13ec58c7860f/gdx-tools-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-freetype-platform/1.6.5/24c9e1a05729e32000191eabaffa7c2f4a525f3e/gdx-freetype-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers-desktop/1.6.5/2c7fcf5e43f4c971a1095b36bd037c98a07219f8/gdx-controllers-desktop-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers-platform/1.6.5/21fde56e7ad283863b3c764d2d53c24c815345ae/gdx-controllers-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx/1.6.5/b56ebcc34d39c4bb0a828c5ed04f46a04314bb4d/gdx-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-bullet/1.6.5/eedc0a26b29434b7ed4e9fc6256dc86c4b2e1814/gdx-bullet-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers/1.6.5/c7fbf76516b2ff2f9a8c13e0f8f23fe43d0a0ee6/gdx-controllers-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl/2.9.2/a9d80fe5935c7a9149f6584d9777cfd471f65489/lwjgl-2.9.2.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl_util/2.9.2/4b9e37300a87799856e0bd15ed81663cdb6b0947/lwjgl_util-2.9.2.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.jlayer/jlayer/1.0.1-gdx/7cca83cec5c1b2f011362f4d85aabd71a73b049d/jlayer-1.0.1-gdx.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.jcraft/jorbis/0.0.17/8872d22b293e8f5d7d56ff92be966e6dc28ebdc6/jorbis-0.0.17.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-backend-headless/1.6.5/5e9dd1183cf3ddba7fe6499eacf85fa77f2cad89/gdx-backend-headless-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl-platform/2.9.2/510c7d317f5e9e700b9cfaac5fd38bdebf0702e0/lwjgl-platform-2.9.2-natives-windows.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl-platform/2.9.2/d276cdf61fe2b516c7b7f4aa1b8dea91dbdc8d56/lwjgl-platform-2.9.2-natives-linux.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl-platform/2.9.2/d55b46b40b40249d627a83a7f7f22649709d70c3/lwjgl-platform-2.9.2-natives-osx.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jinput/jinput/2.0.5/39c7796b469a600f72380316f6b1f11db6c2c7c4/jinput-2.0.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jutils/jutils/1.0.0/e12fe1fda814bd348c1579329c86943d2cd3c6a6/jutils-1.0.0.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jinput/jinput-platform/2.0.5/7ff832a6eb9ab6a767f1ade2b548092d0fa64795/jinput-platform-2.0.5-natives-linux.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jinput/jinput-platform/2.0.5/385ee093e01f587f30ee1c8a2ee7d408fd732e16/jinput-platform-2.0.5-natives-windows.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jinput/jinput-platform/2.0.5/53f9c919f34d2ca9de8c51fc4e1e8282029a9232/jinput-platform-2.0.5-natives-osx.jar"/>
+  </path>
+  
+  <path id="desktop.module.classpath">
+    <path refid="${module.jdk.classpath.desktop}"/>
+    <pathelement location="${desktop.output.dir}"/>
+    <pathelement location="${core.testoutput.dir}"/>
+    <pathelement location="${core.output.dir}"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx/1.6.5/b56ebcc34d39c4bb0a828c5ed04f46a04314bb4d/gdx-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-box2d/1.6.5/d81b49d6bc9aa29518fcaa7db9474fe7405fa324/gdx-box2d-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-bullet/1.6.5/eedc0a26b29434b7ed4e9fc6256dc86c4b2e1814/gdx-bullet-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-ai/1.5.0/5f694a1d54a6e15884ac50b83b7927df771d69b0/gdx-ai-1.5.0.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.box2dlights/box2dlights/1.4/3d77ad5b4164fb32fc67e2446e35911bb0aaf0bd/box2dlights-1.4.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-freetype/1.6.5/d4e6c84d0b2f4a2c0dc1c0a1ba036df54670868a/gdx-freetype-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers/1.6.5/c7fbf76516b2ff2f9a8c13e0f8f23fe43d0a0ee6/gdx-controllers-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.ashley/ashley/1.6.0/f7b513df3e52198ecda822eea1674f488d7352a5/ashley-1.6.0.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-backend-lwjgl/1.6.5/3b435f75bbc525be3d6aba5a2ae888a20e65c9ca/gdx-backend-lwjgl-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-platform/1.6.5/e36705dc77ff6d585be5f7c78f85fe94ea278d7a/gdx-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-box2d-platform/1.6.5/57a4b297f467f98904fb210733bb0eb11576421f/gdx-box2d-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-bullet-platform/1.6.5/5654125b7635b68efb1f49241caabc9a45add217/gdx-bullet-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-tools/1.6.5/7df03792152a3ed5352ec10bdb3e13ec58c7860f/gdx-tools-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-freetype-platform/1.6.5/24c9e1a05729e32000191eabaffa7c2f4a525f3e/gdx-freetype-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers-desktop/1.6.5/2c7fcf5e43f4c971a1095b36bd037c98a07219f8/gdx-controllers-desktop-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers-platform/1.6.5/21fde56e7ad283863b3c764d2d53c24c815345ae/gdx-controllers-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx/1.6.5/b56ebcc34d39c4bb0a828c5ed04f46a04314bb4d/gdx-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-bullet/1.6.5/eedc0a26b29434b7ed4e9fc6256dc86c4b2e1814/gdx-bullet-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers/1.6.5/c7fbf76516b2ff2f9a8c13e0f8f23fe43d0a0ee6/gdx-controllers-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl/2.9.2/a9d80fe5935c7a9149f6584d9777cfd471f65489/lwjgl-2.9.2.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl_util/2.9.2/4b9e37300a87799856e0bd15ed81663cdb6b0947/lwjgl_util-2.9.2.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.jlayer/jlayer/1.0.1-gdx/7cca83cec5c1b2f011362f4d85aabd71a73b049d/jlayer-1.0.1-gdx.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.jcraft/jorbis/0.0.17/8872d22b293e8f5d7d56ff92be966e6dc28ebdc6/jorbis-0.0.17.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-backend-headless/1.6.5/5e9dd1183cf3ddba7fe6499eacf85fa77f2cad89/gdx-backend-headless-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl-platform/2.9.2/510c7d317f5e9e700b9cfaac5fd38bdebf0702e0/lwjgl-platform-2.9.2-natives-windows.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl-platform/2.9.2/d276cdf61fe2b516c7b7f4aa1b8dea91dbdc8d56/lwjgl-platform-2.9.2-natives-linux.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl-platform/2.9.2/d55b46b40b40249d627a83a7f7f22649709d70c3/lwjgl-platform-2.9.2-natives-osx.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jinput/jinput/2.0.5/39c7796b469a600f72380316f6b1f11db6c2c7c4/jinput-2.0.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jutils/jutils/1.0.0/e12fe1fda814bd348c1579329c86943d2cd3c6a6/jutils-1.0.0.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jinput/jinput-platform/2.0.5/7ff832a6eb9ab6a767f1ade2b548092d0fa64795/jinput-platform-2.0.5-natives-linux.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jinput/jinput-platform/2.0.5/385ee093e01f587f30ee1c8a2ee7d408fd732e16/jinput-platform-2.0.5-natives-windows.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jinput/jinput-platform/2.0.5/53f9c919f34d2ca9de8c51fc4e1e8282029a9232/jinput-platform-2.0.5-natives-osx.jar"/>
+  </path>
+  
+  <path id="desktop.runtime.module.classpath">
+    <pathelement location="${desktop.testoutput.dir}"/>
+    <pathelement location="${desktop.output.dir}"/>
+    <path refid="core.runtime.module.classpath"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-backend-lwjgl/1.6.5/3b435f75bbc525be3d6aba5a2ae888a20e65c9ca/gdx-backend-lwjgl-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-platform/1.6.5/e36705dc77ff6d585be5f7c78f85fe94ea278d7a/gdx-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-box2d-platform/1.6.5/57a4b297f467f98904fb210733bb0eb11576421f/gdx-box2d-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-bullet-platform/1.6.5/5654125b7635b68efb1f49241caabc9a45add217/gdx-bullet-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-tools/1.6.5/7df03792152a3ed5352ec10bdb3e13ec58c7860f/gdx-tools-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-freetype-platform/1.6.5/24c9e1a05729e32000191eabaffa7c2f4a525f3e/gdx-freetype-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers-desktop/1.6.5/2c7fcf5e43f4c971a1095b36bd037c98a07219f8/gdx-controllers-desktop-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers-platform/1.6.5/21fde56e7ad283863b3c764d2d53c24c815345ae/gdx-controllers-platform-1.6.5-natives-desktop.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx/1.6.5/b56ebcc34d39c4bb0a828c5ed04f46a04314bb4d/gdx-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-bullet/1.6.5/eedc0a26b29434b7ed4e9fc6256dc86c4b2e1814/gdx-bullet-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-controllers/1.6.5/c7fbf76516b2ff2f9a8c13e0f8f23fe43d0a0ee6/gdx-controllers-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl/2.9.2/a9d80fe5935c7a9149f6584d9777cfd471f65489/lwjgl-2.9.2.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl_util/2.9.2/4b9e37300a87799856e0bd15ed81663cdb6b0947/lwjgl_util-2.9.2.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.jlayer/jlayer/1.0.1-gdx/7cca83cec5c1b2f011362f4d85aabd71a73b049d/jlayer-1.0.1-gdx.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.jcraft/jorbis/0.0.17/8872d22b293e8f5d7d56ff92be966e6dc28ebdc6/jorbis-0.0.17.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-backend-headless/1.6.5/5e9dd1183cf3ddba7fe6499eacf85fa77f2cad89/gdx-backend-headless-1.6.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl-platform/2.9.2/510c7d317f5e9e700b9cfaac5fd38bdebf0702e0/lwjgl-platform-2.9.2-natives-windows.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl-platform/2.9.2/d276cdf61fe2b516c7b7f4aa1b8dea91dbdc8d56/lwjgl-platform-2.9.2-natives-linux.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/org.lwjgl.lwjgl/lwjgl-platform/2.9.2/d55b46b40b40249d627a83a7f7f22649709d70c3/lwjgl-platform-2.9.2-natives-osx.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jinput/jinput/2.0.5/39c7796b469a600f72380316f6b1f11db6c2c7c4/jinput-2.0.5.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jutils/jutils/1.0.0/e12fe1fda814bd348c1579329c86943d2cd3c6a6/jutils-1.0.0.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jinput/jinput-platform/2.0.5/7ff832a6eb9ab6a767f1ade2b548092d0fa64795/jinput-platform-2.0.5-natives-linux.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jinput/jinput-platform/2.0.5/385ee093e01f587f30ee1c8a2ee7d408fd732e16/jinput-platform-2.0.5-natives-windows.jar"/>
+    <pathelement location="${basedir}/../../../.gradle/caches/modules-2/files-2.1/net.java.jinput/jinput-platform/2.0.5/53f9c919f34d2ca9de8c51fc4e1e8282029a9232/jinput-platform-2.0.5-natives-osx.jar"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.desktop">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.desktop">
+    <patternset refid="excluded.from.module.desktop"/>
+  </patternset>
+  
+  <path id="desktop.module.sourcepath">
+    <dirset dir="${module.desktop.basedir}/desktop">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.desktop" depends="compile.module.desktop.production,compile.module.desktop.tests" description="Compile module desktop"/>
+  
+  <target name="compile.module.desktop.production" depends="register.custom.compilers,compile.module.core" description="Compile module desktop; production classes">
+    <mkdir dir="${desktop.output.dir}"/>
+    <javac2 destdir="${desktop.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.desktop}/javac">
+      <compilerarg line="${compiler.args.desktop}"/>
+      <bootclasspath refid="desktop.module.bootclasspath"/>
+      <classpath refid="desktop.module.production.classpath"/>
+      <src refid="desktop.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.desktop"/>
+    </javac2>
+    
+    <copy todir="${desktop.output.dir}">
+      <fileset dir="${module.desktop.basedir}/desktop/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.desktop.tests" depends="register.custom.compilers,compile.module.desktop.production" description="compile module desktop; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.desktop" description="cleanup module">
+    <delete dir="${desktop.output.dir}"/>
+    <delete dir="${desktop.testoutput.dir}"/>
+  </target>
+  
+  <target name="init" description="Build initialization">
+    <!-- Perform any build initialization in this target -->
+  </target>
+  
+  <target name="clean" depends="clean.module.core, clean.module.shooting-platformer, clean.module.desktop" description="cleanup all"/>
+  
+  <target name="build.modules" depends="init, clean, compile.module.core, compile.module.shooting-platformer, compile.module.desktop" description="build all modules"/>
+  
+  <target name="all" depends="build.modules" description="build all"/>
+</project>
