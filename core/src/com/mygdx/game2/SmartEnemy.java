@@ -119,6 +119,8 @@ public class SmartEnemy extends Enemy {
 
             if (health <= 0) {
                 destroyEnemy(particle1s, items);
+
+                destroyed = true;
             }
 
 
@@ -141,6 +143,49 @@ public class SmartEnemy extends Enemy {
         }
     }
 
+
+
+    public void destroyEnemy(Array<Particle> particle1s, Array<Item> items) {
+
+
+        HealthCrystal hp = new HealthCrystal(this.x,
+                this.y,
+                -velX + random.nextInt(3) - 1,
+                3 + random.nextInt(3) - 1,
+                10,12);
+        items.add(hp);
+
+        ManaCrystal mp = new ManaCrystal(this.x,
+                this.y,
+                -velX + random.nextInt(3) - 1,
+                3 + random.nextInt(3) - 1,
+                10,12);
+        items.add(mp);
+
+        int numCoins = random.nextInt(3); // spawn between 0 and 2 coins
+
+        System.out.print(numCoins);
+
+        if (numCoins >= 1) {
+            BasicCoin coin = new BasicCoin(this.x,
+                    this.y,
+                    random.nextInt(5) - 2,
+                    3 + random.nextInt(3) - 1,
+                    10, 12);
+            items.add(coin);
+        }
+
+        if (numCoins >= 2) {
+            BasicCoin coin2 = new BasicCoin(this.x,
+                    this.y,
+                    random.nextInt(5) - 2,
+                    3 + random.nextInt(3) - 1,
+                    10, 12);
+            items.add(coin2);
+        }
+    }
+
+
     public Rectangle getRect() {
         return rect;
     }
@@ -149,24 +194,7 @@ public class SmartEnemy extends Enemy {
         health += addToHealth;
     }
 
-    private void destroyEnemy(Array<Particle> particle1s, Array<Item> items) {
-        destroyed = true;
 
-        HealthCrystal hp = new HealthCrystal((int)this.x,
-                (int)this.y,
-                -velX + random.nextInt(3) - 1,
-                3 + random.nextInt(3) - 1,
-                10,12);
-
-        items.add(hp);
-
-        ManaCrystal mp = new ManaCrystal((int)this.x,
-                (int)this.y,
-                -velX + random.nextInt(3) - 1,
-                3 + random.nextInt(3) - 1,
-                10,12);
-        items.add(mp);
-    }
 
     public void checkTilesHit(Array<BaseTile> baseTiles) {
         for (BaseTile tile : baseTiles) {

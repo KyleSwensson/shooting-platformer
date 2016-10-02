@@ -10,7 +10,7 @@ import java.awt.*;
  * Created by kyle on 10/7/2015.
  */
 
-//TODO: Finish implementing type hierarchy on items
+//TODO: Finish implementing type hierarchy on mgItems
 public abstract class Item {
     boolean destroyed = false;
     float x;
@@ -40,8 +40,12 @@ public abstract class Item {
 
     public abstract void draw(SpriteBatch batch);
 
-    public abstract Rectangle getRect();
+    public  Rectangle getRect() {
+        return rect;
+    }
 
-    public abstract void setDestroyed(boolean destroyed);
+    public void setDestroyed(boolean destroyed) {
+        this.destroyed = destroyed;
+    }
 
 }

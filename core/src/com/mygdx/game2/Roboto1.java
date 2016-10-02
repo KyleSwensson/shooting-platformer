@@ -98,7 +98,8 @@ public class Roboto1 extends Enemy {
             }
 
             if (health <= 0) {
-                destroyRobot(particle1s, items);
+                destroyEnemy(particle1s, items);
+                destroyed = true;
             }
 
             if (velX == 3 || velX == -3) {
@@ -149,8 +150,8 @@ public class Roboto1 extends Enemy {
 
     }
 
-    private void destroyRobot(Array<Particle> particle1s, Array<Item> items) {
-        destroyed = true;
+    public void destroyEnemy(Array<Particle> particle1s, Array<Item> items) {
+
 
         HealthCrystal hp = new HealthCrystal(this.x,
                 this.y,
@@ -165,7 +166,31 @@ public class Roboto1 extends Enemy {
                 3 + random.nextInt(3) - 1,
                 10,12);
         items.add(mp);
+
+        int numCoins = random.nextInt(3); // spawn between 0 and 2 coins
+
+        System.out.print(numCoins);
+
+        if (numCoins >= 1) {
+            BasicCoin coin = new BasicCoin(this.x,
+                    this.y,
+                    random.nextInt(5) - 2,
+                    3 + random.nextInt(3) - 1,
+                    10, 12);
+            items.add(coin);
+        }
+
+        if (numCoins >= 2) {
+            BasicCoin coin2 = new BasicCoin(this.x,
+                    this.y,
+                    random.nextInt(5) - 2,
+                    3 + random.nextInt(3) - 1,
+                    10, 12);
+            items.add(coin2);
+        }
     }
+
+
 
     private void moveFlyingRobot(int playerX) {
         if (playerX > this.x) velX += .4;

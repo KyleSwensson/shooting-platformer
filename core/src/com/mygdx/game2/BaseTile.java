@@ -16,6 +16,8 @@ public class BaseTile {
     boolean isFlipped = false;
     boolean isFlippedVertical = false;
 
+    boolean isEdgeTile;
+
     String type;
 
     int tileMapOffsetX; // offset in tilemap
@@ -45,6 +47,7 @@ public class BaseTile {
         coveredRight = false;
         coveredTop = false;
         coveredBottom = false;
+        isEdgeTile = false;
     }
 
     public void update(int playerX, int playerY) {

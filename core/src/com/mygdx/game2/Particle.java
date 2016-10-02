@@ -1,6 +1,7 @@
 package com.mygdx.game2;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 
@@ -11,8 +12,8 @@ import java.util.Random;
  * Created by kyle on 9/16/2015.
  */
 public abstract class Particle {
-    int x = 0;
-    int y = 0;
+    float x = 0;
+    float y = 0;
     float width = 4;
     float height = 4;
     float velX = 0;
@@ -24,13 +25,12 @@ public abstract class Particle {
     Random random = new Random();
 
 
-    int xDist; // distance from block to character x plane
-    int yDist; // distance from block to character y plane
+    float xDist; // distance from block to character x plane
+    float yDist; // distance from block to character y plane
     int attractDist = 150; // max distance from player that this should still be drawn and updated
     boolean isAttracted; // boolean to tell whether it is too far away and should be drawn
 
 
-    int timeExisted = 0;
     boolean facingRight; // false = going right, true = going left
     public Rectangle rect = new Rectangle();
 
@@ -118,7 +118,7 @@ public abstract class Particle {
 
     }
 
-    public void draw() {
+    public void draw(SpriteBatch batch) {
 
     }
 
@@ -126,6 +126,7 @@ public abstract class Particle {
         for (BaseTile tile : baseTiles) {
             if (tile.isActive) {
                 if (rect.overlaps(tile.rect)) {
+                    if (partType == "flyingSpin") destroyed = true;
                     float rect1Top = rect.y + rect.height;
                     float rect1Bot = rect.y;
                     float rect1Left = rect.x;

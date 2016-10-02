@@ -14,6 +14,7 @@ public class BigAuraBullet extends EnemyBullet {
 
     int aliveTime = 0;
     int targetTime = 30; // if alive time is less than this velY = +2;
+    int maxAliveTime = 80; // destroy after has been alive for 80 frames
 
     float playerDX = 0;
     float playerDY = 0;
@@ -39,6 +40,9 @@ public class BigAuraBullet extends EnemyBullet {
         super.update(baseTiles, playerRect);
 
         aliveTime ++;
+        if (aliveTime > maxAliveTime) {
+            destroyed = true;
+        }
         if (aliveTime < targetTime) {
             velX = 0;
             velY -= .025;

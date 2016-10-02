@@ -164,7 +164,7 @@ public class BossFly extends Enemy {
             rect.height = height;
 
 
-            //checkTilesHit(baseTiles);
+            //checkTilesHit(mgBaseTiles);
             //currently not checking tiles because that made the fly get like hella stuck all the time
 
 

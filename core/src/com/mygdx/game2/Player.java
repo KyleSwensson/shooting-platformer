@@ -14,8 +14,33 @@ public class Player extends Character {
     boolean facingRight = false; // if facing = false player is facing left, if facing = true player = facing right
     int x = 0;
     int y = 0;
+
+    int[] heldWeapons = new int[10]; // array telling the game which weapons you are capable of using, you start with only the pistol unlocked
+    // 0 is empty (no unlock)
+    // 1 is a pistol
+    // 2 is a cannon
+    // 3 is machine gun
+    // 4 is flamethrower
+    // 5 is rocket launcher
+    // 6 is grenades
+
+    //entire array will shift downwards or upwards (not including 0 part) when weapons are rotated (like a looping array), active weapon is the weapon in spot [0]
+    // to clarify if the next spot is 0 the current item will go to the front of the array instead of pushing the next spot up
+
+    //TODO: implement looping of array
+    //TODO: implement drawing correct weapons based on array
+    //TODO: make it so player cannot select weapons he doesn't own
+    //TODO: make it so pickups unlock weapons
+
+
+    // when player goes into a shop his x and y reset for the shop, the oldx and oldy keep track of where the player was when in main game
+    int oldX = 0;
+    int oldY = 0;
+
     int fuel = 0; //player has fuel for a floating spell that shoots him up, regains 1 fuel per second, flying costs 3 fuel per second
     int maxFuel = 500;
+
+    int numCoins = 0; // number of coins player holds
 
     String drawType = "Idle"; // tells the game what animation type to have the player be in
     // types that exist are Jumping, Falling, Running, Idle, WallCling
@@ -96,7 +121,7 @@ public class Player extends Character {
         grenadeAmmo = maxGrenadeAmmo;
     }
 
-    public void update(Array<PlayerBullet> bullets, Array<BaseTile> baseTiles, Array<Particle> particle1s, Array<Enemy> enemies, Array<Animation> anims, Array<Item> items, Array<EnemyBullet> enemyBullets) {
+    public void update(Array<PlayerBullet> bullets, Array<BaseTile> baseTiles, Array<Particle> particle1s, Array<Enemy> enemies, Array<Animation> anims, Array<Item> items, Array<EnemyBullet> enemyBullets, int mainState) {
         if (health <= 0) {
             health = 0;
             gameOver = true;
@@ -144,13 +169,37 @@ public class Player extends Character {
             shakeFrames--;
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
-            gunType ++;
-            if (gunType > 6) gunType = 1;
+
+
+            if (heldWeapons[1] == 0) {
+                // special case where there is only one weapon, dont do anything
+            } else {
+                int tempHoldingFirstSlot = heldWeapons[0]; // holding this for when it gets overwritten in first non both 0 iteration
+
+                for (int i = heldWeapons.length - 1; i > 0; i--) {
+                    if (heldWeapons[i] == 0 && heldWeapons[i - 1] != 0) {
+
+                        heldWeapons[0] = heldWeapons[i - 1];
+                    } else if (heldWeapons[i] != 0 && heldWeapons[i - 1] != 0) {
+                        heldWeapons[i] = heldWeapons[i - 1];
+                    }
+                }
+                heldWeapons[1] = tempHoldingFirstSlot;
+            }
+
+            //PRINT THING
+            for (int i = 0; i < heldWeapons.length; i++) {
+                System.out.print(heldWeapons[i]);
+            }
+            System.out.println();
+            //end of pritn thing
+
+            gunType = heldWeapons[0];
         }
 
         if (touchingGround) {
             if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-                if (velX >= 0) {
+                if (velX >= 0 && !touchingLeftWall) {
                     for (int i = 0; i < 3; i++) {
                         DustParticle part = new DustParticle(x + ((i + 3) * (width / 6)), y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
                         particle1s.add(part);
@@ -158,11 +207,10 @@ public class Player extends Character {
                 }
 
                 facingRight = false;
-                if (velX > -6)
-                    velX -= 2;
+                if (velX > -6) velX -= 2;
             }
             else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-                if (velX <= 0) {
+                if (velX <= 0 && !touchingRightWall) {
                     for (int i = 0; i < 3; i++) {
                         DustParticle part = new DustParticle(x + (i * (width / 6)), y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
                         particle1s.add(part);
@@ -194,16 +242,18 @@ public class Player extends Character {
         }
 
 
-        if (touchingLeftWall || touchingRightWall) {
+        if (touchingLeftWall || touchingRightWall)  {
             if (wallSlidingDustFrames < wallSlidingDustMax) {
                 wallSlidingDustFrames++;
             } else {
-                if (touchingLeftWall) {
-                    DustParticle part = new DustParticle(x, y + height / 2, 0, 0, "dust", 100);
-                    particle1s.add(part);
-                } else {
-                    DustParticle part = new DustParticle(x + width - 4, y + height / 2, 0, 0, "dust", 100);
-                    particle1s.add(part);
+                if (!touchingGround) {
+                    if (touchingLeftWall) {
+                        DustParticle part = new DustParticle(x, y + height / 2, 0, 0, "dust", 100);
+                        particle1s.add(part);
+                    } else {
+                        DustParticle part = new DustParticle(x + width - 4, y + height / 2, 0, 0, "dust", 100);
+                        particle1s.add(part);
+                    }
                 }
                 wallSlidingDustFrames = 0;
             }
@@ -213,7 +263,7 @@ public class Player extends Character {
 
         if (velY > 8) velY = 8;
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.X)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
             if (canJump) {
                 if (touchingGround) {
                     y += 2;
@@ -260,6 +310,8 @@ public class Player extends Character {
             if (fuel > 0) {
                 fuel -=3;
                 velY += .5;
+                FlyWaveParticle part = new FlyWaveParticle((int)(x + random.nextDouble()*width), y, 0,0, "flyingSpin", 80);
+                particle1s.add(part);
             }
             if (fuel < 0) fuel = 0;
         }
@@ -285,12 +337,18 @@ public class Player extends Character {
                 } else if (item.getType().equals("Mana")) {
                     item.setDestroyed(true);
                     fuel += 100;
+                } else if (item.getType().equals("Coin")) {
+                    item.setDestroyed(true);
+                    numCoins ++;
+
                 }
             }
         }
 
 
-        handleMakeBullets(bullets, particle1s);
+        if (mainState == 0) {
+            handleMakeBullets(bullets, particle1s);
+        }
 
 
         for (Bullet bullet : bullets) {
@@ -325,6 +383,25 @@ public class Player extends Character {
         bgXOffset += velX/3;
         bgYOffset += velY/3;
 
+    }
+
+    public boolean alreadyHasItem(int itemId) {
+        for (int i =0; i < heldWeapons.length; i++) {
+            if (heldWeapons[i] == itemId) return true;
+        }
+        return false;
+    }
+
+    public void addWeapon(int itemId) {
+        heldWeapons[findFirstEmptyWeaponSpot()] = itemId;
+    }
+
+    public int findFirstEmptyWeaponSpot() {
+        for (int i = 0; i < heldWeapons.length; i++) {
+            if (heldWeapons[i] == 0) return i;
+        }
+
+        return heldWeapons.length - 1;
     }
 
     private void checkRobotsHit(Array<Enemy> enemies, Array<Animation> anims, Array<EnemyBullet> enemyBullets) {
@@ -383,7 +460,7 @@ public class Player extends Character {
         //during this frame
         bulletSpawnCounter++;
 
-        if(Gdx.input.isKeyPressed(Input.Keys.Z)) {
+        if(Gdx.input.isKeyPressed(Input.Keys.X)) {
             if (gunType == 1) {
                 if (bulletSpawnCounter > bullet1SpawnTime) {
 
@@ -434,7 +511,7 @@ public class Player extends Character {
 
 
             }
-            else if (gunType == 2 && flameAmmo > 0) {
+            else if (gunType == 4 && flameAmmo > 0) {
 
                     if (bulletSpawnCounter > flameSpawnTime) {
                         flameAmmo --;
@@ -522,7 +599,7 @@ public class Player extends Character {
                         particle1s.add(part);
                     }
                 }
-            } else if (gunType == 4 && cannonAmmo > 0) {
+            } else if (gunType == 2 && cannonAmmo > 0) {
 
                 if (bulletSpawnCounter > cannonSpawnTime) {
                     cannonAmmo --;

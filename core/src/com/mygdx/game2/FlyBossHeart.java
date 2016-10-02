@@ -50,7 +50,7 @@ public class FlyBossHeart extends Enemy implements Boss {
 
 
             if (health <= 0) {
-                destroyRobot(particle1s, items);
+                destroyThis(particle1s, items);
             }
             x += velX;
             y += velY;
@@ -69,7 +69,7 @@ public class FlyBossHeart extends Enemy implements Boss {
         batch.draw(image,x,y,width,height);
     }
 
-    private void destroyRobot(Array<Particle> particle1s, Array<Item> items) {
+    private void destroyThis(Array<Particle> particle1s, Array<Item> items) {
         destroyed = true;
         //TODO: other things that hap when boss dies
     }
