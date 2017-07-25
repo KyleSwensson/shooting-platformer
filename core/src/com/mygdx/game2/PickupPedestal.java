@@ -28,7 +28,7 @@ public class PickupPedestal extends Item {
 
     Rectangle rect = new Rectangle();
 
-    public PickupPedestal(float x, float y, float velX, float velY, int width, int height) {
+    public PickupPedestal(float x, float y, float velX, float velY, int width, int height, int[] playerWeps) {
         super(x,y,velX,velY,width,height);
 
         rect.x = x;
@@ -36,7 +36,18 @@ public class PickupPedestal extends Item {
         rect.width = width;
         rect.height = height;
 
-        pickup = new Pickup(x,y + 30,width,height);
+        pickup = new Pickup(x,y + 30,width,height, playerWeps);
+    }
+
+    public PickupPedestal(float x, float y, float velX, float velY, int width, int height, int[] playerWeps, int specialWepToSpawn) {
+        super(x,y,velX,velY,width,height);
+
+        rect.x = x;
+        rect.y = y;
+        rect.width = width;
+        rect.height = height;
+
+        pickup = new Pickup(x,y + 30,width,height, specialWepToSpawn);
     }
 
     public  String getType() {

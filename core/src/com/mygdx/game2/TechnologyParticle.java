@@ -13,10 +13,10 @@ public class TechnologyParticle extends Particle {
     }
 
     @Override
-    public void update(Array<BaseTile> baseTiles, Array<Roboto1> robot1s, int playerX, int playerY) {
+    public void update(Array<Particle> particles, Array<BaseTile> baseTiles, Array<Roboto1> robot1s, int playerX, int playerY) {
         width -= .05;
         height -= .05;
-        super.update(baseTiles,robot1s,playerX,playerY);
+        super.update(particles, baseTiles,robot1s,playerX,playerY);
     }
 
 

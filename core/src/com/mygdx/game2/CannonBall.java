@@ -28,7 +28,7 @@ public class CannonBall extends PlayerBullet {
         partSpawnTime ++;
         if (partSpawnTime > partSpawnMax) {
             partSpawnTime = 0;
-            TechnologyParticle part = new TechnologyParticle(x,y+random.nextInt((int)height),0,0,"technology",15);
+            TechnologyParticle part = new TechnologyParticle((int)x,(int)y+random.nextInt((int)height),0,0,"technology",15);
             particles.add(part);
             if (partSpawnMax > 1) {
                 partSpawnMax -= 1;
@@ -39,9 +39,9 @@ public class CannonBall extends PlayerBullet {
 
         velX *= 1.1;
         for (Enemy enemy : enemies) {
-            if (rect.overlaps(enemy.getRect())) {
+            if (rect.overlaps(enemy.getRect()) && enemy.isHittable) {
                 enemy.changeHealth(-15);
-                EnemyHitText hitText = new EnemyHitText(x,y,15);
+                EnemyHitText hitText = new EnemyHitText((int)x,(int)y,15);
                 anims.add(hitText);
                 destroyed = true;
                 EnemyHitSquareAnimation anim = new EnemyHitSquareAnimation();

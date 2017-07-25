@@ -53,10 +53,10 @@ public abstract class PlayerBullet extends Bullet {
                     if (!bulletType.equals("Grenade") && !bulletType.equals("Flame") && !bulletType.equals("Rocket")) {
                         if ((int) height > 0) {
                             if (facingRight) {
-                                DustParticle part = new DustParticle(tile.x - 3, y + random.nextInt((int) height), 0, 0, "dust", 60);
+                                DustParticle part = new DustParticle(tile.x - 3, (int)y + random.nextInt((int) height), 0, 0, "dust", 60);
                                 particles.add(part);
                             } else {
-                                DustParticle part = new DustParticle(tile.x + tile.width + 3, y + random.nextInt((int) height), 0, 0, "dust", 60);
+                                DustParticle part = new DustParticle(tile.x + tile.width + 3, (int)y + random.nextInt((int) height), 0, 0, "dust", 60);
                                 particles.add(part);
                             }
                         }

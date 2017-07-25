@@ -54,14 +54,14 @@ public class PistolBullet extends PlayerBullet {
 
 
         for (Enemy enemy : enemies) {
-                if (rect.overlaps(enemy.getRect())) {
+                if (rect.overlaps(enemy.getRect()) && enemy.isHittable) {
                     enemy.changeHealth(-10);
                     destroyed = true;
                     EnemyHitSquareAnimation anim = new EnemyHitSquareAnimation();
                     anim.x = x;
                     anim.y = y;
                     anims.add(anim);
-                    EnemyHitText hitText = new EnemyHitText(x,y,10);
+                    EnemyHitText hitText = new EnemyHitText((int)x,(int)y,10);
                     anims.add(hitText);
                 }
         }

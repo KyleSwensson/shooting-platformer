@@ -14,6 +14,7 @@ public class ShopDoor extends Item {
     String type = "shopDoor";
     Texture doorImage = new Texture("SPA/tile-map/exitDoor.png");
     Texture labelImage = new Texture("SPA/tile-map/coinBG.png");
+
     boolean intersectingPlayer = false;
 
     int xDist; // distance from block to character x plane

@@ -7,8 +7,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
  * Created by kyles on 8/3/2016.
  */
 public class UnlocksButton extends AbstractButton {
-    Texture image = new Texture("unlocksButton.png");
-    Texture selectedImage = new Texture("unlocksButtonPressed.png");
+    Texture image = new Texture("controlsButton.png");
+    Texture selectedImage = new Texture("controlsButtonPressed.png");
 
     public UnlocksButton(int x, int y) {
         this.x = x;

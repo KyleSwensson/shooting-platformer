@@ -45,7 +45,7 @@ public abstract class Particle {
 
     }
 
-    public void update(Array<BaseTile> baseTiles, Array<Roboto1> robot1s, int playerX, int playerY) {
+    public void update(Array<Particle> particles, Array<BaseTile> baseTiles, Array<Roboto1> robot1s, int playerX, int playerY) {
         destroyTime++;
 
         if (destroyTime > destroyMax) destroyed = true;

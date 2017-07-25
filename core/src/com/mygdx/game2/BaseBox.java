@@ -23,8 +23,8 @@ public class BaseBox extends Enemy {
     //TODO: make the tile drawdist be a little more than the drawDist for everythign else which should be all the same
 
     public Texture image = new Texture("SPA/Objects/Box/box.png");
+
     public BaseBox(float x, float y, float velX, float velY, int width, int height) {
-        enemyType = "safe";
         health = 40;
         this.x = x;
         this.y = y;
@@ -38,6 +38,7 @@ public class BaseBox extends Enemy {
         rect.y = y;
         destroyed = false;
         isActive = false;
+        isDangerous = false;
     }
 
     public boolean getDestroyed() {

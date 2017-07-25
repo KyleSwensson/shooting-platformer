@@ -3,12 +3,16 @@ package com.mygdx.game2;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import javafx.scene.transform.Rotate;
 
 
 //TODO: have each tile have an additional chance to spawn mgEnemies, have mgEnemies drop experience, have a level system
@@ -23,6 +27,7 @@ import com.badlogic.gdx.utils.Array;
 //sometimes grenades can slip through the corner
 
 
+import java.util.ArrayList;
 import java.util.Random;
 
 /*
@@ -51,7 +56,12 @@ long sprawling, randomized levels. take the cave randomization generator from my
 
 public class GdxShooter2 extends ApplicationAdapter {
 
+	float zoomChangeAmount = 0;
 
+	static ArrayList<Vector2> lineStarts = new ArrayList<Vector2>();
+
+	static ArrayList<Vector2> lineEnds = new ArrayList<Vector2>();
+	private static ShapeRenderer lineRenderer;
 
 	//This is the object that holds the main game menu that opens when you start the game
 	MainMenu mainMenu;
@@ -59,11 +69,22 @@ public class GdxShooter2 extends ApplicationAdapter {
 	PauseMenu pauseMenu;
 	//This is the object that holds the menu that pops up when you die asking if you want to retry or quit
 	DeathMenu deathMenu;
+	//this is the object that holds the menu that asks you whether you want to play the intro the first time you play
+	IntroMenu introMenu;
 
 	//tells the game what to do, if the gamestate is 0 it is on the main menu, 1 is playing normally, 2 is on the pause menu, 3 is on the death menu;
 	int gameState;
-	// state to tell whether the player is in a shop or a boss fight or item room, 0 = main game, 1 = shop
+	// state to tell whether the player is in a shop or a boss fight or item room, 0 = main game, 1 = shop, 4 = boss room
 	int mainState;
+	// boolean to tell whether the pause screen is up or not
+	boolean isPaused;
+	// boolean to tell whether you are in the intro stage or not
+	boolean isInIntro;
+	//boolean to tell the game whether the user has already played the intro this session
+	boolean hasPlayedIntro;
+
+
+
 
 	// the gamestate that will be switched to when the transitioner is done fading into black
 	int stateWaiting;
@@ -77,6 +98,12 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 	int[][] shopMap = new int[60][34];
 	int[][] itemRoomMap = new int[34][34];
+	int[][] bossRoomMap = new int[44][44];
+	int[][] introStageMap;
+
+	// previousBosses makes boolean at array[bossnumber] true if you have seen that boss bafore, so it will not show you that boss again
+	//UNLESS all elements of previousBosses are already true
+	boolean[] previousBosses = new boolean[3];
 
 
 	int currentLevel = 1;
@@ -90,8 +117,12 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 
 
+
 	BitmapFont bitFont;
 
+
+	//Texture for controls instructions overlay
+	Texture controlsOverlayImage;
 
 	//Textures for idle player
 	Texture[] playerIdleImgs = new Texture[4];
@@ -99,6 +130,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 	Texture playerJumpImg;
 	Texture playerFallImg;
 	Texture[] playerRunImgs = new Texture[10];
+	Texture[] playerRollImgs = new Texture[5];
 
 
 	//Textures for characters
@@ -168,14 +200,19 @@ public class GdxShooter2 extends ApplicationAdapter {
 	Texture jungleBg;
 	Texture jungleBg2;
 
+
 	Random random = new Random();
 
 	int shakeFrames = 0;
 	int cameraXAdjustment;
 	int cameraYAdjustment;
 
-	//TODO: figure out why can go thru floor
-	//TODO: probably make max down velocity lower
+	float baseCameraZoom = 1;
+	float diamoundCameraZoom = 1.45f;
+	float shadowBossCameraZoom = 1;
+
+	boolean isControlsOverlayOpen;
+	boolean isIntroSelectOverlayOpen;
 
 	Gate endGate;
 
@@ -185,22 +222,22 @@ public class GdxShooter2 extends ApplicationAdapter {
 	private SpriteBatch batch;
 	private SpriteBatch hudBatch;
 	private SpriteBatch blackFadeBatch;
-	private Player player;
+	private static Player player;
 	private WeaponSelectTile wepSelect1;
 	private SelectedWeaponSelectTile wepSelect2;
 	private WeaponSelectTile wepSelect3;
 
 	//lists of objects for main game
-	public Array<PlayerBullet> mgPlayerBullets = new Array<PlayerBullet>();
-	public Array<EnemyBullet> mgEnemyBullets = new Array<EnemyBullet>();
+	public static Array<PlayerBullet> mgPlayerBullets = new Array<PlayerBullet>();
+	public static Array<EnemyBullet> mgEnemyBullets = new Array<EnemyBullet>();
 
-	public Array<BaseTile> mgBaseTiles = new Array<BaseTile>();
-	public Array<BaseTile> mgPassiveTiles = new Array<BaseTile>();
-	public Array<Particle> mgParticle1s = new Array<Particle>();
-	public Array<Roboto1> mgRobot1s = new Array<Roboto1>();
-	public Array<Item> mgItems = new Array<Item>();
-	public Array<Animation> mgAnims = new Array<Animation>();
-	public Array<Enemy> mgEnemies = new Array<Enemy>();
+	public static Array<BaseTile> mgBaseTiles = new Array<BaseTile>();
+	public static Array<BaseTile> mgPassiveTiles = new Array<BaseTile>();
+	public static Array<Particle> mgParticle1s = new Array<Particle>();
+	public static Array<Roboto1> mgRobot1s = new Array<Roboto1>();
+	public static Array<Item> mgItems = new Array<Item>();
+	public static Array<Animation> mgAnims = new Array<Animation>();
+	public static Array<Enemy> mgEnemies = new Array<Enemy>();
 
 	//lists of objects for shop
 	public Array<BaseTile> shopBaseTiles = new Array<BaseTile>();
@@ -220,6 +257,17 @@ public class GdxShooter2 extends ApplicationAdapter {
 	public Array<Animation> irAnims = new Array<Animation>();
 	public Array<Enemy> irEnemies = new Array<Enemy>();
 
+	//lists of objects for boss room
+	public Array<BaseTile> brBaseTiles = new Array<BaseTile>();
+	public Array<BaseTile> brPassiveTiles = new Array<BaseTile>();
+	public Array<Particle> brParticle1s = new Array<Particle>();
+	public Array<Roboto1> brRobot1s = new Array<Roboto1>();
+	public Array<Item> brItems = new Array<Item>();
+	public Array<Animation> brAnims = new Array<Animation>();
+	public Array<Enemy> brEnemies = new Array<Enemy>();
+
+	public boolean bossDefeated = false;
+	public int numBoss = 0;
 
 	//currently active list of objects
 	public Array<BaseTile> activeBaseTiles = new Array<BaseTile>();
@@ -227,14 +275,26 @@ public class GdxShooter2 extends ApplicationAdapter {
 	public Array<Particle> activeParticle1s = new Array<Particle>();
 	public Array<Roboto1> activeRobot1s = new Array<Roboto1>();
 	public Array<Item> activeItems = new Array<Item>();
-	public Array<Animation> activeAnims = new Array<Animation>();
+	public static Array<Animation> activeAnims = new Array<Animation>();
 	public Array<Enemy> activeEnemies = new Array<Enemy>();
+
+	public static Array<Animation> getActiveAnimations() {
+		return activeAnims;
+	}
 	
 	@Override
 	public void create () {
 
+		lineRenderer = new ShapeRenderer();
+
+		isControlsOverlayOpen = false;
+		isIntroSelectOverlayOpen = false;
+
 		gameState = 0;
 		mainState = 0;
+		isPaused = false;
+		isInIntro = false;
+		hasPlayedIntro = false;
 		bitFont = new BitmapFont(Gdx.files.internal("SPA/font.fnt"), false);
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false,800,480);
@@ -245,6 +305,9 @@ public class GdxShooter2 extends ApplicationAdapter {
 		levelText = new BitmapFont();
 		levelTextX = 30;
 		levelTextY = 330;
+
+
+		controlsOverlayImage = new Texture("controlsOverlay.png");
 
 		//Textures for idle player
 		playerIdleImgs[0] = new Texture("SPA/Player/Iddle/1.png");
@@ -266,6 +329,13 @@ public class GdxShooter2 extends ApplicationAdapter {
 		playerRunImgs[7] = new Texture("SPA/Player/Run/8.png");
 		playerRunImgs[8] = new Texture("SPA/Player/Run/9.png");
 		playerRunImgs[9] = new Texture("SPA/Player/Run/10.png");
+
+
+		playerRollImgs[0] = new Texture("SPA/Player/Roll/1.png");
+		playerRollImgs[1] = new Texture("SPA/Player/Roll/2.png");
+		playerRollImgs[2] = new Texture("SPA/Player/Roll/3.png");
+		playerRollImgs[3] = new Texture("SPA/Player/Roll/4.png");
+		playerRollImgs[4] = new Texture("SPA/Player/Roll/5.png");
 
 
 		//Textures for characters
@@ -333,10 +403,12 @@ public class GdxShooter2 extends ApplicationAdapter {
 		spikesImg = new Texture("SPA/tile-map/spikes.png");
 
 		player = new Player();
-		player.x = 800 / 2 - 64 / 2;
+		player.x = 800 / 2 - 32;
 		player.y = (levelMap[1].length / 2) * 32;
 		player.width = 24;
 		player.height = 36;
+
+		pauseMenu = new PauseMenu();
 
 		wepSelect1 = new WeaponSelectTile(weaponSelectImg, 26, 445,pistolIconImg, heavyIconImg, machineGunIconImg, fireIconImg, rocketIconImg, grenadeIconImg);
 		wepSelect2 = new SelectedWeaponSelectTile(selectedWeaponSelectImg,57,443, pistolIconImg, heavyIconImg, machineGunIconImg, fireIconImg, rocketIconImg, grenadeIconImg);
@@ -353,6 +425,13 @@ public class GdxShooter2 extends ApplicationAdapter {
 		mainMenu = new MainMenu(800,480);
 	}
 
+
+	private void createIntro() {
+		makeIntroStageMap();
+		instantiateInroMap();
+		setPlayerToIntroSpawnPos();
+
+	}
 
 	private void createEntireLevel() {
 		createChunkMap(currentLevel);
@@ -383,17 +462,26 @@ public class GdxShooter2 extends ApplicationAdapter {
 		if (newState == 0) {
 			player.x = player.oldX;
 			player.y = player.oldY;
+			player.velX = 0;
+			player.velY = 0;
 		}
 		if (newState == 1) {
 			player.oldX = player.x;
 			player.oldY = player.y;
 			setPlayerToShopPos();
+			player.velX = 0;
+			player.velY = 0;
 
 		} else if (newState == 2) {
 			player.oldX = player.x;
 			player.oldY = player.y;
+			player.velX = 0;
+			player.velY = 0;
 			setPlayerToItemRoomPos();
-
+		} else if (newState == 4) {
+			player.velX = 0;
+			player.velY = 0;
+			generateBossStage();
 		}
 	}
 
@@ -409,12 +497,20 @@ public class GdxShooter2 extends ApplicationAdapter {
 		setPlayerToSpawnPos(levelMap);
 	}
 
+	private void setPlayerToIntroSpawnPos() {
+		setPlayerToSpawnPos(introStageMap);
+	}
+
+	private void setPlayerToBossRoomSpawnPos() { setPlayerToSpawnPos(bossRoomMap); }
+
 	private void setPlayerToSpawnPos(int[][] givenMap) {
 		for (int i = 0; i < givenMap.length; i++) {
 			for (int j = 0; j < givenMap[0].length; j++) {
 				if (givenMap[i][j] == 100) {
 					player.x = i * 32 + 100;
 					player.y = -j * 32 + (givenMap[1].length * 32);
+					player.x += 10;
+					player.y -= 10;
 				}
 			}
 		}
@@ -446,6 +542,21 @@ public class GdxShooter2 extends ApplicationAdapter {
 		irParticle1s.clear();
 		irPassiveTiles.clear();
 		irAnims.clear();
+	}
+
+	private void clearOldBossRoom() {
+		// clear map of boss room
+		clearGenericMap(bossRoomMap);
+
+		//remove all old shop items
+		brRobot1s.clear();
+		brEnemies.clear();
+		brItems.clear();
+		brBaseTiles.clear();
+		brParticle1s.clear();
+		brPassiveTiles.clear();
+		brAnims.clear();
+
 	}
 
 	//sets a rectangular 2d array to all 0s
@@ -495,6 +606,157 @@ public class GdxShooter2 extends ApplicationAdapter {
 		findInactiveTiles(shopMap);
 	}
 
+	private boolean allBossesEnountered() {
+		for (int i = 0; i < previousBosses.length; i++) {
+			if (!previousBosses[i]) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+
+	private void makeIntroStageMap() {
+
+		int[][] introStageMapWrongRotation = new int[][]{
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,14,14,14,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,14,14,14,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,21,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,14,14,14,1,99,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,12,1,1,1,1,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,100,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,31,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,13,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
+
+		introStageMap = RotateMatrix(introStageMapWrongRotation, introStageMapWrongRotation.length, introStageMapWrongRotation[0].length);
+		introStageMap = flipMatrixVertically(introStageMap, introStageMap.length, introStageMap[0].length);
+
+		setBgTiles(introStageMap, mgPassiveTiles);
+
+		findInactiveTiles(introStageMap);
+
+	}
+
+
+	static int[][] RotateMatrix(int[][] matrix, int n, int m) {
+		int[][] ret = new int[m][n];
+
+		for (int i = 0; i < m; ++i) {
+			for (int j = 0; j < n; ++j) {
+				ret[i][j] = matrix[n - j - 1][i];
+			}
+		}
+
+		return ret;
+	}
+
+	static int[][] flipMatrixVertically(int[][] matrix, int n, int m) {
+		int[][] ret = new int[n][m];
+
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < m; j++) {
+				ret[i][j] = matrix[i][m-j-1];
+			}
+		}
+
+		return ret;
+	}
+
+	private void makeBossRoomMap() {
+
+		setBgTiles(bossRoomMap, brPassiveTiles);
+
+
+		numBoss = random.nextInt(3) + 1;
+		if (!allBossesEnountered()) {
+			while (previousBosses[numBoss - 1] == true) {
+				numBoss = random.nextInt(3) + 1;
+			}
+		}
+
+
+		previousBosses[numBoss - 1] = true;
+
+		if (numBoss == 1) {
+			for (int i = 0; i < bossRoomMap.length; i++) {
+				for (int j = 0; j < bossRoomMap[0].length; j++) {
+					bossRoomMap[i][j] = 1;
+					if (i <= 12 || i >= bossRoomMap.length - 13) {
+						bossRoomMap[i][j] = 0;
+					} else if (j <= 12 || j >= bossRoomMap[0].length - 13) {
+						bossRoomMap[i][j] = 0;
+					}
+				}
+			}
+
+			bossRoomMap[bossRoomMap.length / 2][bossRoomMap[0].length / 2] = 80551;
+			bossRoomMap[(bossRoomMap.length / 2) + 6][(bossRoomMap[0].length / 2) + 6] = 805511;
+			bossRoomMap[(bossRoomMap.length / 2) + 6][(bossRoomMap[0].length / 2) - 6] = 805511;
+			bossRoomMap[(bossRoomMap.length / 2) - 6][(bossRoomMap[0].length / 2) + 6] = 805511;
+			bossRoomMap[(bossRoomMap.length / 2) - 6][(bossRoomMap[0].length / 2) - 6] = 805511;
+
+			bossRoomMap[bossRoomMap.length - 15][bossRoomMap[0].length - 14] = 201; // make leave shop door at 25,13
+			bossRoomMap[15][bossRoomMap[0].length - 14] = 100; // spawn player at 15,13
+
+			findInactiveTiles(bossRoomMap);
+		} else if (numBoss == 2) {
+			for (int i = 0; i < bossRoomMap.length; i++) {
+				for (int j = 0; j < bossRoomMap[0].length; j++) {
+					bossRoomMap[i][j] = 1;
+					if (i <= 12 || i >= bossRoomMap.length - 13) {
+						bossRoomMap[i][j] = 0;
+					} else if (j <= 12 || j >= bossRoomMap[0].length - 13) {
+						bossRoomMap[i][j] = 0;
+					}
+				}
+			}
+
+			bossRoomMap[bossRoomMap.length / 2][bossRoomMap[0].length / 2] = 80552;
+
+			bossRoomMap[bossRoomMap.length - 15][bossRoomMap[0].length - 14] = 201; // make leave shop door at 25,13
+			bossRoomMap[15][bossRoomMap[0].length - 14] = 100; // spawn player at 15,13
+
+			findInactiveTiles(bossRoomMap);
+		} else if (numBoss == 3) {
+			for (int i = 0; i < bossRoomMap.length; i++) {
+				for (int j = 0; j < bossRoomMap[0].length; j++) {
+					bossRoomMap[i][j] = 1;
+					if (i <= 12 || i >= bossRoomMap.length - 13) {
+						bossRoomMap[i][j] = 0;
+					} else if (j <= 12 || j >= bossRoomMap[0].length - 13) {
+						bossRoomMap[i][j] = 0;
+					}
+				}
+			}
+
+			bossRoomMap[bossRoomMap.length / 2][bossRoomMap[0].length / 2] = 80553;
+
+			bossRoomMap[bossRoomMap.length - 15][bossRoomMap[0].length - 14] = 201; // make leave shop door at 25,13
+			bossRoomMap[15][bossRoomMap[0].length - 14] = 100; // spawn player at 15,13
+
+			findInactiveTiles(bossRoomMap);
+		}
+	}
+
 	private void makeItemRoomMap() {
 		setBgTiles(itemRoomMap, irPassiveTiles);
 
@@ -517,6 +779,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 		for (int i = 0; i<givenMap.length; i++) {
 			for (int p = 0; p < givenMap[0].length; p++) {
 				if (givenMap[i][p] == 0) {
+					//Make basic tile if givenMap[i][p] == 0
 					BaseTile tile = new BaseTile(i * 32 + 100,
 							-p * 32 + (givenMap[1].length * 32));
 					tile.type = "blank";
@@ -605,6 +868,8 @@ public class GdxShooter2 extends ApplicationAdapter {
 					}
 
 					baseTiles.add(tile);
+				} else if (givenMap[i][p] == 1) {
+					//dont make anything if givenMap[i][p] == 1
 				} else if (givenMap[i][p] == 2) {
 					BaseTile tile = new BaseTile(i * 32 + 100,
 							-p * 32 + (givenMap[1].length * 32));
@@ -617,6 +882,31 @@ public class GdxShooter2 extends ApplicationAdapter {
 							-p * 32 + (givenMap[1].length * 32));
 					tile.type = "grassTop";
 					baseTiles.add(tile);
+				} else if (givenMap[i][p] == 11) {
+					//TODO: MAKE MANA CRYSTAL SPAWN
+				} else if (givenMap[i][p] == 12) {
+					Roboto1 roboto1 = new Roboto1(i * 32 + 100, -p * 32 + (givenMap[1].length * 32), false);
+					enemies.add(roboto1);
+				} else if (givenMap[i][p] == 13) {
+					SmartEnemy smartEnemy = new SmartEnemy(i * 32 + 100, -p * 32 + (givenMap[1].length * 32));
+					enemies.add(smartEnemy);
+				} else if (givenMap[i][p] == 14) {
+					Roboto1 roboto1 = new Roboto1(i * 32 + 100, -p * 32 + (givenMap[1].length * 32), true);
+					enemies.add(roboto1);
+				} else if (givenMap[i][p] == 15) {
+					ShootingGuy shootingGuy = new ShootingGuy(i * 32 + 100, -p * 32 + (givenMap[1].length * 32));
+					enemies.add(shootingGuy);
+				} else if (givenMap[i][p] == 21) {
+					ItemRoomDoor irDoor = new ItemRoomDoor(i * 32 + 100, -p * 32 + (givenMap[1].length * 32), 0, 0, 32, 32, true);
+					items.add(irDoor);
+					clearOldItemRoom();
+					makeItemRoomMap();
+					instantiateItemRoomMap();
+
+					//TODO: MAKE ITEM ROOM WITH ROCKET LAUNCHER SPAWN
+				} else if (givenMap[i][p] == 31) {
+					TriangleBGLabel tLabel = new TriangleBGLabel(i * 32 + 100, -p * 32 + (givenMap[1].length * 32), 0, 0, 128,128);
+					items.add(tLabel);
 				} else if (givenMap[i][p] == 99) { // if levelMap == 99 spawn end gate
 					endGate = new Gate(i * 32 + 100,
 							-p * 32 + (givenMap[1].length * 32));
@@ -638,7 +928,12 @@ public class GdxShooter2 extends ApplicationAdapter {
 					items.add(table);
 
 				} else if (givenMap[i][p] == 310) { // spawn a item pedestal with random item
-					PickupPedestal pedestal = new PickupPedestal((i*32 + 100), -p * 32 + (givenMap[1].length*32), 0, 0 ,32, 32);
+					PickupPedestal pedestal;
+					if (isInIntro) {
+						pedestal = new PickupPedestal((i * 32 + 100), -p * 32 + (givenMap[1].length * 32), 0, 0, 32, 32, player.heldWeapons, 6);
+					} else {
+						pedestal = new PickupPedestal((i * 32 + 100), -p * 32 + (givenMap[1].length * 32), 0, 0, 32, 32, player.heldWeapons);
+					}
 					items.add(pedestal);
 
 
@@ -647,11 +942,44 @@ public class GdxShooter2 extends ApplicationAdapter {
 					enemy.enemyType = "FlyBoss";
 					enemies.add(enemy);
 
-					for (int q = 0; q < 20; q++) {
+					/*for (int q = 0; q < 20; q++) {
 						BossFly e = new BossFly((i*32 + 100) + (random.nextInt(100) - 50), (-p * 32 + (givenMap[1].length * 32) + (random.nextInt(100) - 50)));
 						e.enemyType = "FlyBossMinion";
 						enemies.add(e);
+					}*/
+
+					for (Enemy e : enemies) {
+						if (e.getType() == "SubCrystalBoss") {
+							SubCrystalBoss s = (SubCrystalBoss) e;
+							enemy.addSubCrystal(s);
+						}
 					}
+
+				} else if (givenMap[i][p] == 805511) { // if levelMap == 80551 spawn fly boss
+					SubCrystalBoss enemy;
+					if (i == 16 && p == 16) {
+						enemy = new SubCrystalBoss((i * 32 + 100), -p * 32 + (givenMap[1].length * 32), 1);
+					} else if (i == 16 && p == 28) {
+						enemy = new SubCrystalBoss((i * 32 + 100), -p * 32 + (givenMap[1].length * 32), 2);
+					} else if (i == 28 && p == 16) {
+						enemy = new SubCrystalBoss((i * 32 + 100), -p * 32 + (givenMap[1].length * 32), 3);
+					} else {
+						enemy = new SubCrystalBoss((i * 32 + 100), -p * 32 + (givenMap[1].length * 32), 4);
+					}
+					enemies.add(enemy);
+					for (Enemy e : enemies) {
+						if (e.getType() == "FlyBoss") {
+							FlyBossHeart f = (FlyBossHeart)e;
+							f.addSubCrystal(enemy);
+						}
+					}
+				} else if (givenMap[i][p] == 80552) {
+					SwordsmanBoss enemy = new SwordsmanBoss((i*32 + 100), -p * 32 + (givenMap[1].length*32));
+					enemy.enemyType = "SwordsmanBoss";
+					enemies.add(enemy);
+				} else if (givenMap[i][p] == 80553) {
+					SkullBoss enemy = new SkullBoss((i*32 + 100), -p * 32 + (givenMap[1].length*32));
+					enemies.add(enemy);
 				}
 
 			}
@@ -666,6 +994,15 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 	private void instantiateItemRoomMap() {
 		instantiateMap(itemRoomMap, irBaseTiles, irPassiveTiles, irEnemies, irAnims, irItems);
+	}
+
+	private void instantiateBossRoomMap() {
+		instantiateMap(bossRoomMap, brBaseTiles, brPassiveTiles, brEnemies, brAnims, brItems);
+	}
+
+
+	private void instantiateInroMap() {
+		instantiateMap(introStageMap, mgBaseTiles, mgPassiveTiles, mgEnemies, mgAnims, mgItems);
 	}
 
 	private void setActiveObjects(Array<BaseTile> baseTiles, Array<BaseTile> passiveTiles, Array<Particle> particles,
@@ -955,16 +1292,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 
 			if (i == 199) {
-				if (level == 2) {
-					chunkMap[generateChunkX][generateChunkY] = 51; // boss tile
-					chunkMap[generateChunkX][generateChunkY+1] = 50; // boss tile
-					chunkMap[generateChunkX+1][generateChunkY] = 50; // boss tile
-					chunkMap[generateChunkX+1][generateChunkY+1] = 50; // boss tile
-
-
-				} else {
-					chunkMap[generateChunkX][generateChunkY] = 2; // makes it an end tile
-				}
+				chunkMap[generateChunkX][generateChunkY] = 2; // makes it an end tile
 
 			}
 
@@ -1026,7 +1354,11 @@ public class GdxShooter2 extends ApplicationAdapter {
 				updateMainMenu();
 			}
 			if (gameState == 1) {
-				updateMainGame();
+				if (!isPaused) {
+					updateMainGame();
+				} else {
+					updatePauseScreen();
+				}
 			}
 			if (gameState == 3) {
 				updateDeathMenu();
@@ -1034,13 +1366,58 @@ public class GdxShooter2 extends ApplicationAdapter {
 		}
 	}
 
+	public void updatePauseScreen() {
+		if (!isControlsOverlayOpen) {
+			pauseMenu.update();
+			if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+				isPaused = false;
+			}
+			if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT) || Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+				pauseMenu.changeButtonSelected(-1);
+			}
+
+			if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT) || Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+				pauseMenu.changeButtonSelected(1);
+			}
+
+			if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.Z) || Gdx.input.isKeyJustPressed(Input.Keys.X)) {
+				int selectedButton = pauseMenu.getButtonSelected();
+				if (selectedButton == 0) {
+					isPaused = false;
+				} else if (selectedButton == 1) {
+					BlackFadeInBG.getInstance().isActive = true;
+					stateWaiting = 0;
+					isPaused = false;
+				} else if (selectedButton == 2) {
+					isControlsOverlayOpen = true;
+				}
+			}
+		} else {
+			if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.Z) || Gdx.input.isKeyJustPressed(Input.Keys.X) || Gdx.input.isKeyJustPressed(Input.Keys.RIGHT) || Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+				isControlsOverlayOpen = false;
+			}
+			if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+				isControlsOverlayOpen = false;
+				isPaused = false;
+			}
+		}
+
+
+	}
+
 	public void updateBlackFadeIn() {
 		BlackFadeInBG.getInstance().update();
 		if (!BlackFadeInBG.getInstance().isActive) {
 			if (!BlackFadeInBG.getInstance().fadingIn) {
 				if (stateWaiting == 1) {
+					setMainState(0);
 					prepareForNewGame();
-					createEntireLevel();
+					if (!hasPlayedIntro) {
+						hasPlayedIntro = true;
+						createIntro();
+					} else {
+						createEntireLevel();
+					}
 				}
 				gameState = stateWaiting;
 				BlackFadeInBG.getInstance().isActive = true;
@@ -1050,7 +1427,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 	private void updateDeathMenu() {
 
-		if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+		if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.Z)  || Gdx.input.isKeyJustPressed(Input.Keys.X) ) {
 			if (deathMenu.selectedOption == 0) {
 				BlackFadeInBG.getInstance().isActive = true;
 				stateWaiting = 0;
@@ -1065,34 +1442,136 @@ public class GdxShooter2 extends ApplicationAdapter {
 		} else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
 			deathMenu.alterSelected(1);
 		}
+		deathMenu.update();
 	}
 
 	private void updateMainMenu() {
-		if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
-			mainMenu.alterSelected(-1);
-		} else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
-			mainMenu.alterSelected(1);
-		}
+		if (!isControlsOverlayOpen && !isIntroSelectOverlayOpen) {
+			mainMenu.update();
+			if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+				mainMenu.alterSelected(-1);
+			} else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+				mainMenu.alterSelected(1);
+			}
 
-		if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-			if (mainMenu.selectedOption == 0) {
-				BlackFadeInBG.getInstance().isActive = true;
-				stateWaiting = 1;
+			if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.Z)  || Gdx.input.isKeyJustPressed(Input.Keys.X) ) {
+				if (mainMenu.selectedOption == 0) {
+					if (hasPlayedIntro) {
+						BlackFadeInBG.getInstance().isActive = true;
+						stateWaiting = 1;
+					} else {
+						isIntroSelectOverlayOpen = true;
+						introMenu = new IntroMenu();
+					}
 
-			} else if (mainMenu.selectedOption == 3) {
-				Gdx.app.exit();
+				} else if (mainMenu.selectedOption == 3) {
+					Gdx.app.exit();
+				} else if (mainMenu.selectedOption == 2) {
+					isControlsOverlayOpen = true;
+				}
+			}
+		} else if (isControlsOverlayOpen) {
+			if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.Z)  || Gdx.input.isKeyJustPressed(Input.Keys.X) || Gdx.input.isKeyJustPressed(Input.Keys.RIGHT) || Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+				isControlsOverlayOpen = false;
+			}
+		} else {
+			if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+				introMenu.alterSelected(-1);
+			} else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+				introMenu.alterSelected(1);
+			} else if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+				if (introMenu.selectedOption == 0) {
+					isIntroSelectOverlayOpen = false;
+					BlackFadeInBG.getInstance().isActive = true;
+					stateWaiting = 1;
+				} else {
+					isIntroSelectOverlayOpen = false;
+					hasPlayedIntro = true;
+					BlackFadeInBG.getInstance().isActive = true;
+					stateWaiting = 1;
+				}
 			}
 		}
 
 	}
 
 	private void updateMainGame() {
+
+
+		if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+			isPaused = true;
+		}
+		if (Gdx.input.isKeyJustPressed(Input.Keys.J)) {
+			// cheat key to go straight to boss
+			setMainState(4);
+		}
+
 		if (mainState == 0) {
 			setActiveObjects(mgBaseTiles,mgPassiveTiles,mgParticle1s,mgRobot1s,mgItems,mgAnims,mgEnemies);
 		} else if (mainState == 1) {
 			setActiveObjects(shopBaseTiles,shopPassiveTiles,shopParticle1s,shopRobot1s,shopItems,shopAnims,shopEnemies);
 		} else if (mainState == 2) {
 			setActiveObjects(irBaseTiles, irPassiveTiles, irParticle1s, irRobot1s, irItems, irAnims, irEnemies);
+		} else if (mainState == 4) {
+			setActiveObjects(brBaseTiles, brPassiveTiles, brParticle1s, brRobot1s, brItems, brAnims, brEnemies);
+		}
+
+
+
+		if (mainState == 4) {
+			if (numBoss == 1) {
+				if (activeEnemies.size == 0) {
+					bossDefeated = true;
+				} else {
+					// logic to make boss room leaving door enterable if boss is dead, and also make boss not invincible once his sub crystals are dead
+					boolean foundFlyBoss = false;
+					boolean foundSubCrystal = false;
+					boolean bossStillInvincible = false;
+
+					for (Enemy e : activeEnemies) {
+						if (e.enemyType == "FlyBoss") {
+							foundFlyBoss = true;
+							FlyBossHeart f = (FlyBossHeart) e;
+							if (f.isInvincible) {
+								bossStillInvincible = true;
+							}
+						} else if (e.enemyType == "SubCrystalBoss") {
+							foundSubCrystal = true;
+						}
+					}
+
+					if (!foundFlyBoss) {
+						bossDefeated = true;
+					} else if (!foundSubCrystal && bossStillInvincible && foundFlyBoss) {
+						for (Enemy e : activeEnemies) {
+							if (e.enemyType == "FlyBoss") {
+								FlyBossHeart f = (FlyBossHeart) e;
+								f.isInvincible = false;
+							} else if (e.enemyType == "FlyBossMinion") {
+								BossFly b = (BossFly) e;
+								b.isInvincible = false;
+							}
+						}
+					}
+
+
+				}
+			} else if (numBoss == 2) {
+				if (activeEnemies.size == 0) {
+					bossDefeated = true;
+				} else {
+					boolean foundShadowBoss = false;
+					for (Enemy e: activeEnemies) {
+						if (e.getType() == "SwordsmanBoss") {
+							foundShadowBoss = true;
+						}
+					}
+
+					if (!foundShadowBoss) {
+						bossDefeated = true;
+					}
+				}
+			}
 		}
 
 		if (player.gameOver) {
@@ -1102,15 +1581,26 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 
 		//TODO: This is a testing feature, It should be removed upon release
-		if (Gdx.input.isKeyPressed(Input.Keys.P)) {
+		if (Gdx.input.isKeyPressed(Input.Keys.I)) {
 			camera.zoom += .02;
 		} else if (Gdx.input.isKeyPressed(Input.Keys.O)) {
 			camera.zoom -= .02;
 		}
 
 		if (player.rect.overlaps(endGate.rect)) {
-			currentLevel++;
-			generateNewLevel();
+			if (!isInIntro) {
+				if (currentLevel % 1 != 0) {
+
+						currentLevel++;
+						generateNewLevel();
+				} else {
+					setMainState(4);
+				}
+			} else {
+				currentLevel = 1;
+				isInIntro = false;
+				generateNewLevel();
+			}
 
 		}
 
@@ -1150,6 +1640,10 @@ public class GdxShooter2 extends ApplicationAdapter {
 			if (item.getType() == "pickupPedestal") {
 				PickupPedestal newItem = (PickupPedestal) item;
 				if (newItem.intersectingPlayer && !newItem.itemTaken) {
+					PlayerSpiralParticle part = new PlayerSpiralParticle((int)player.x, (int)player.y,0,0, "PlayerSpiral", 100, 3.14f);
+					activeParticle1s.add(part);
+					PlayerSpiralParticle part2 = new PlayerSpiralParticle((int)player.x, (int)player.y,0,0, "PlayerSpiral", 100, 0);
+					activeParticle1s.add(part2);
 					newItem.itemTaken = true;
 					//TODO: make unlock stuff happen here
 					if (!player.alreadyHasItem(newItem.pickup.pickupType)) { // dont pick up weapon if u already got it
@@ -1203,6 +1697,17 @@ public class GdxShooter2 extends ApplicationAdapter {
 							setMainState(0);
 						}
 					}
+				} else if (mainState == 4) {
+					if (item.getType() == "leaveShopDoor" && bossDefeated) {
+						LeaveShopDoor newItem = (LeaveShopDoor) item;
+						if (newItem.intersectingPlayer) {
+							bossDefeated = false;
+							currentLevel++;
+							setMainState(0);
+							generateNewLevel();
+							setPlayerToMainGameSpawnPos();
+						}
+					}
 				}
 			}
 
@@ -1224,9 +1729,9 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 		for (int i = 0; i < mgEnemyBullets.size; ) {
 			EnemyBullet bullet = mgEnemyBullets.get(i);
-			bullet.update(activeBaseTiles, player.rect);
+			bullet.update(activeBaseTiles, player.rect, mgParticle1s, mgEnemyBullets);
 
-			if (bullet.destroyed) {
+			if (bullet.getDestroyed()) {
 				int lastBullet = mgEnemyBullets.size - 1;
 				mgEnemyBullets.set(i, mgEnemyBullets.get(lastBullet));
 				mgEnemyBullets.removeIndex(lastBullet);
@@ -1238,7 +1743,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 		for (int i = 0; i < activeParticle1s.size; ) {
 			Particle part = activeParticle1s.get(i);
-			part.update(activeBaseTiles, activeRobot1s, player.x, player.y);
+			part.update(activeParticle1s, activeBaseTiles, activeRobot1s, (int)player.x, (int)player.y);
 
 			if (part.destroyed) {
 				int lastParticle = activeParticle1s.size - 1;
@@ -1251,7 +1756,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 		for (int i = 0; i < activeRobot1s.size; ) {
 			Roboto1 robot = activeRobot1s.get(i);
-			robot.update(activeEnemies, mgEnemyBullets, mgPlayerBullets, activeItems, activeBaseTiles, activeParticle1s, player.x, player.y);
+			robot.update(activeEnemies, mgEnemyBullets, mgPlayerBullets, activeItems, activeBaseTiles, activeParticle1s, (int)player.x, (int)player.y);
 
 			if (robot.destroyed) {
 				int lastRobot = activeRobot1s.size - 1;
@@ -1264,7 +1769,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 		for (int i = 0; i < activeEnemies.size; ) {
 			Enemy enemy = activeEnemies.get(i);
-			enemy.update(activeEnemies, mgEnemyBullets, mgPlayerBullets, activeItems, activeBaseTiles, activeParticle1s, player.x, player.y);
+			enemy.update(activeEnemies, mgEnemyBullets, mgPlayerBullets, activeItems, activeBaseTiles, activeParticle1s, (int)player.x,(int) player.y);
 
 			if (enemy.getDestroyed()) {
 				int lastEnemy = activeEnemies.size - 1;
@@ -1276,7 +1781,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 		}
 
 		for (BaseTile tile : activeBaseTiles) {
-			tile.update(player.x, player.y);
+			tile.update((int)player.x, (int)player.y);
 		}
 
 	}
@@ -1310,19 +1815,83 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 			camera.update();
 			camera.position.set(0,0,0);
+			camera.zoom = baseCameraZoom;
 			batch.begin();
 			mainMenu.draw(batch);
+			if (isControlsOverlayOpen) {
+				batch.draw(controlsOverlayImage, -350,-225,700 ,450);
+			}
+			if (isIntroSelectOverlayOpen) {
+				introMenu.draw(batch);
+			}
 			batch.end();
 		} else if (gameState == 1 || gameState == 3) {
-			camera.update();
-			camera.position.set(player.x + cameraXAdjustment, player.y + cameraYAdjustment, 0);
-			shakeCamera();
+			if (mainState == 4) {
+				boolean bossFound = false;
+				if (numBoss == 1) {
+					for (Enemy e : activeEnemies) {
+						if (e.getType() == "FlyBoss") {
+							bossFound = true;
+							FlyBossHeart boss = (FlyBossHeart)e;
+							camera.update();
+							camera.position.set(boss.x+cameraXAdjustment, boss.y+cameraYAdjustment, 0);
+							shakeCamera();
+
+							camera.zoom = diamoundCameraZoom;
+						}
+					}
+
+				} else if (numBoss == 2) {
+					for (Enemy e:activeEnemies) {
+						if (e.getType() == "SwordsmanBoss") {
+							bossFound = true;
+							SwordsmanBoss boss = (SwordsmanBoss)e;
+							camera.update();
+							camera.position.set(player.x + cameraXAdjustment, player.y + cameraYAdjustment, 0);
+							shakeCamera();
+							if (!camera.frustum.pointInFrustum(boss.x - (boss.width / 2),boss.y - (boss.height / 2), 0) || !camera.frustum.pointInFrustum(boss.x + (1.5f*boss.width),boss.y + (1.5f*boss.height), 0)) {
+								if (zoomChangeAmount < 0) {
+									zoomChangeAmount = 0;
+								}
+								zoomChangeAmount += 0.002;
+								camera.zoom	+= zoomChangeAmount;
+							} else {
+								if (camera.zoom > baseCameraZoom) {
+									if (zoomChangeAmount > 0) {
+										zoomChangeAmount = 0;
+									}
+									if (zoomChangeAmount < -0.01f) {
+										zoomChangeAmount = -0.01f;
+									}
+									zoomChangeAmount -= 0.00025;
+									camera.zoom += zoomChangeAmount;
+								}
+							}
+						}
+					}
+				}
+
+				if (!bossFound) {
+					camera.update();
+					camera.position.set(player.x + cameraXAdjustment, player.y + cameraYAdjustment, 0);
+					if (camera.zoom > baseCameraZoom) {
+						camera.zoom -= 0.01f;
+					}
+					shakeCamera();
+				}
+			} else {
+				camera.update();
+				camera.position.set(player.x + cameraXAdjustment, player.y + cameraYAdjustment, 0);
+				/*if (camera.zoom > baseCameraZoom) {
+					camera.zoom -= 0.01f;
+				}*/
+				camera.zoom = baseCameraZoom;
+				shakeCamera();
+			}
 			batch.begin();
 			for (BaseTile tile : activePassiveTiles) {
 				if (tile.type.equals("background")) {
 					batch.draw(bgTileImg, tile.x, tile.y, tile.width, tile.height);
-				} else {
-					batch.draw(tileMapImg, tile.x, tile.y, tile.width, tile.height, 64, 32, 16, 16, false, false);
 				}
 			}
 
@@ -1333,7 +1902,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 			}
 
 			//no bullets in the shop
-			if (mainState == 0) {
+			if (mainState == 0 || mainState == 4) {
 				for (PlayerBullet bul : mgPlayerBullets) {
 					bul.draw(batch);
 				}
@@ -1376,7 +1945,7 @@ public class GdxShooter2 extends ApplicationAdapter {
 					batch.draw(dustParticleImg, part.x, part.y, part.width, part.height);
 				else if (part.partType.equals("technology"))
 					batch.draw(techParticleImg, part.x, part.y, part.width, part.height);
-				else if (part.partType.equals("flyingSpin")) {
+				else {
 					part.draw(batch);
 				}
 			}
@@ -1391,33 +1960,43 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 			batch.draw(endLevelDoorImg, endGate.x, endGate.y, endGate.width, endGate.height, 0, 0, 32, 32, false, false);
 			drawPlayer();
-			if (player.facingRight) {
+			if (player.shouldDrawWeapon()) {
+				if (player.facingRight) {
 
-				if (player.gunType == 1)
-					batch.draw(baseGunImg, player.x + 13, player.y + 5, 12, 8, 0, 0, 12, 8, false, false);
-				else if (player.gunType == 2)
-					batch.draw(flamethrowerImg, player.x + 13, player.y + 5, 16, 12, 0, 0, 18, 12, false, false);
-				else if (player.gunType == 3)
-					batch.draw(machineGunImg, player.x + 13, player.y + 5, 16, 7, 0, 0, 18, 9, false, false);
-				else if (player.gunType == 4)
-					batch.draw(cannonImg, player.x + 13, player.y + 5, 16, 12, 0, 0, 18, 14, false, false);
-			} else {
+					if (player.gunType == 1)
+						batch.draw(baseGunImg, player.x + 13, player.y + 5, 12, 8, 0, 0, 12, 8, false, false);
+					else if (player.gunType == 2)
+						batch.draw(flamethrowerImg, player.x + 13, player.y + 5, 16, 12, 0, 0, 18, 12, false, false);
+					else if (player.gunType == 3)
+						batch.draw(machineGunImg, player.x + 13, player.y + 5, 16, 7, 0, 0, 18, 9, false, false);
+					else if (player.gunType == 4)
+						batch.draw(cannonImg, player.x + 13, player.y + 5, 16, 12, 0, 0, 18, 14, false, false);
+				} else {
 
-				if (player.gunType == 1)
-					batch.draw(baseGunImg, player.x + 6, player.y + 5, 12, 8, 0, 0, 12, 8, true, false);
-				else if (player.gunType == 2)
-					batch.draw(flamethrowerImg, player.x + 6, player.y + 5, 16, 12, 0, 0, 18, 12, true, false);
-				else if (player.gunType == 3)
-					batch.draw(machineGunImg, player.x + 6, player.y + 5, 16, 7, 0, 0, 18, 9, true, false);
-				else if (player.gunType == 4)
-					batch.draw(cannonImg, player.x + 6, player.y + 5, 16, 12, 0, 0, 18, 14, true, false);
+					if (player.gunType == 1)
+						batch.draw(baseGunImg, player.x + 6, player.y + 5, 12, 8, 0, 0, 12, 8, true, false);
+					else if (player.gunType == 2)
+						batch.draw(flamethrowerImg, player.x + 6, player.y + 5, 16, 12, 0, 0, 18, 12, true, false);
+					else if (player.gunType == 3)
+						batch.draw(machineGunImg, player.x + 6, player.y + 5, 16, 7, 0, 0, 18, 9, true, false);
+					else if (player.gunType == 4)
+						batch.draw(cannonImg, player.x + 6, player.y + 5, 16, 12, 0, 0, 18, 14, true, false);
 
+				}
 			}
 
 			for (Animation anim : activeAnims) {
 				anim.draw(batch);
 			}
+
+			for (BaseTile tile : activePassiveTiles) {
+				if (!tile.type.equals("background")) {
+					batch.draw(tileMapImg, tile.x, tile.y, tile.width, tile.height, 64, 32, 16, 16, false, false);
+				}
+			}
+
 			batch.end();
+			drawLines(batch);
 			hudBatch.begin();
 
 			hudBatch.draw(manaBarImg, 52, 349, 16, (int) (66 * ((float) player.fuel / (float) player.maxFuel)));
@@ -1439,10 +2018,13 @@ public class GdxShooter2 extends ApplicationAdapter {
 			if (gameState == 3) {
 				deathMenu.draw(hudBatch);
 			}
+			if (isPaused && gameState == 1) {
+				pauseMenu.draw(hudBatch);
+				if (isControlsOverlayOpen) {
+					hudBatch.draw(controlsOverlayImage, 50,10,700 ,450);
+				}
+			}
 			hudBatch.end();
-
-
-
 		}
 		drawBlackBG();
 
@@ -1497,9 +2079,12 @@ public class GdxShooter2 extends ApplicationAdapter {
 			batch.draw(playerWallClingImg, player.x, player.y, player.width, player.height, 0, 0, 12, 18, player.facingRight, false);
 		} else if (player.drawType.equals("Run")) {
 			batch.draw(playerRunImgs[player.runningImage], player.x, player.y, player.width, player.height, 0, 0, 12, 18, !player.facingRight, false);
+		} else if (player.drawType.equals("Roll")) {
+			batch.draw(playerRollImgs[player.rollImage], player.x, player.y, player.width, player.height, 0, 0, 12, 18, !player.facingRight, false);
 		}
 	}
 
+	//THIS SHOULD BE CALLED WHENEVER A NEW GAME IS STARTING REGARDLESS OF WHETHER THERE ALREADY WAS A PREVIOUS GAME
 	//resets level and player's health, clears all objects
 	public void prepareForNewGame() {
 		player.gameOver = false;
@@ -1516,9 +2101,25 @@ public class GdxShooter2 extends ApplicationAdapter {
 		for(int i= 0; i< player.heldWeapons.length; i++) {
 			player.heldWeapons[i] = 0;
 		}
+		player.gunType = 1;
 		player.heldWeapons[0] = 1; // unlocks pistol
-		player.heldWeapons[1] = 2;
+		player.heldWeapons[1] = 6;
+
+		player.numCoins = 0;
+
+		player.beingPulledByGrapplingHook = false;
+		player.grappleHookTravelling = false;
+
 		clearOldLevel();
+		clearOldBossRoom();
+		clearOldItemRoom();
+		clearOldShop();
+
+		for (int i = 0; i < previousBosses.length; i++) {
+			previousBosses[i] = false;
+		}
+
+		isInIntro = true;
 	}
 
 	public void clearOldLevel() {
@@ -1533,8 +2134,6 @@ public class GdxShooter2 extends ApplicationAdapter {
 
 		player.x = 800 / 2 - 64 / 2;
 		player.y = (levelMap[1].length / 2) * 32;
-
-
 	}
 
 	//clears all mgItems from map and resets player's position
@@ -1552,9 +2151,23 @@ public class GdxShooter2 extends ApplicationAdapter {
 		player.y = (levelMap[1].length / 2) * 32;
 
 		createEntireLevel();
+	}
 
+	public void generateBossStage() {
+		bossDefeated = false;
+		mgRobot1s.clear();
+		mgEnemies.clear();
+		mgEnemyBullets.clear();
+		mgItems.clear();
+		mgBaseTiles.clear();
+		mgPlayerBullets.clear();
+		mgParticle1s.clear();
+		mgPassiveTiles.clear();
 
-
+		clearOldBossRoom();
+		makeBossRoomMap();
+		instantiateBossRoomMap();
+		setPlayerToBossRoomSpawnPos();
 	}
 
 	public void addMiscItems() {
@@ -1564,71 +2177,92 @@ public class GdxShooter2 extends ApplicationAdapter {
 		//NOTE: these make it so spawned shops/item rooms are more likely to be towards the beginning of the level but oh well what can you do
 
 
+		EnemySpawner spawner = new EnemySpawner();
+		spawner.spawnEnemies(2000, mgBaseTiles);
 
-		for (BaseTile baseTile : mgBaseTiles) {
-			if (!baseTile.coveredBottom && !baseTile.isEdgeTile) {
-				int spawnRoll = random.nextInt(1000);
-				int numTypes = 7; // how many types of things there are you can spawn
-				int itemFrequency = 50; // tells how often to spawn mgItems on tiles
-				if (spawnRoll > itemFrequency) {
-					//do nothing, therefore only make mgItems in 1/20 tiles
-				} else if (spawnRoll > (6*itemFrequency) / numTypes) {
-					System.out.println("trying to spawn item room door");
-					if (!hasSpawnedItemRoomDoor) {
-						System.out.println("spawned!");
-						ItemRoomDoor itemDoor = new ItemRoomDoor(baseTile.x, baseTile.y + baseTile.height, 0, 0, 32, 32);
-						mgItems.add(itemDoor);
-						hasSpawnedItemRoomDoor = true;
-					}
-				} else if (spawnRoll > (5*itemFrequency) / numTypes) {
-					if (!hasSpawnedShopDoor) {
-						ShopDoor sdoor = new ShopDoor(baseTile.x, baseTile.y + baseTile.height, 0, 0, 32, 32);
-						mgItems.add(sdoor);
-						hasSpawnedShopDoor = true;
-					}
-
-				} else if (spawnRoll > (4*itemFrequency) / numTypes) {
-					// smart enemy
-					SmartEnemy enemy = new SmartEnemy();
-					enemy.x = baseTile.x;
-					enemy.y = baseTile.y + baseTile.height;
-					enemy.width = 32;
-					enemy.height = 32;
-					mgEnemies.add(enemy);
-				} else if (spawnRoll > (3*itemFrequency) / numTypes) {
-					// flying enemy
-					Roboto1 robot = new Roboto1();
-					robot.x = baseTile.x;
-					robot.y = baseTile.y + baseTile.height;
-					robot.width = 32;
-					robot.height = 32;
-					robot.flying = true;
-					mgEnemies.add(robot);
-				} else if (spawnRoll > (2*itemFrequency) / numTypes) {
-					// shooting enemy
-					ShootingGuy enemy = new ShootingGuy();
-					enemy.x = baseTile.x;
-					enemy.y = baseTile.y + baseTile.height;
-					enemy.width = 32;
-					enemy.height = 32;
-					mgEnemies.add(enemy);
-				} else if (spawnRoll > (itemFrequency) / numTypes) {
-					// normal enemy
-					Roboto1 robot = new Roboto1();
-					robot.x = baseTile.x;
-					robot.y = baseTile.y + baseTile.height;
-					robot.width = 32;
-					robot.height = 32;
-					robot.flying = false;
-					mgEnemies.add(robot);
-				} else {
-					// box
-					BaseBox box = new BaseBox(baseTile.x, baseTile.y + baseTile.height,0,0,22,22);
-					mgEnemies.add(box);
-				}
-
-			}
-		}
+//		for (BaseTile baseTile : mgBaseTiles) {
+//			if (!baseTile.coveredBottom && !baseTile.isEdgeTile) {
+//				int spawnRoll = random.nextInt(1000);
+//				int numTypes = 16; // how many types of things there are you can spawn
+//				int itemFrequency = 40;
+//				if (currentLevel >= 2) {
+//					itemFrequency = 60;
+//				}
+//				if (spawnRoll > itemFrequency) {
+//					//do nothing, therefore only make mgItems in 1/20 tiles
+//				} else if (spawnRoll > (1*itemFrequency) / numTypes) {
+//					FireballShooter shooter = new FireballShooter(baseTile.x, baseTile.y+ baseTile.height, random.nextInt(4)+1);
+//					mgEnemies.add(shooter);
+//				} else if (spawnRoll > (14*itemFrequency) / numTypes) {
+//					CirclingBallOnChain ball = new CirclingBallOnChain(baseTile.x, baseTile.y+ baseTile.height);
+//					mgEnemies.add(ball);
+//				} else if (spawnRoll > (13*itemFrequency) / numTypes) {
+//					BlowDartShooter shooter = new BlowDartShooter(baseTile.x, baseTile.y+ baseTile.height, 4);
+//					mgEnemies.add(shooter);
+//				} else if (spawnRoll > (12*itemFrequency) / numTypes) {
+//					FetyrBowman bowman = new FetyrBowman(baseTile.x, baseTile.y+ baseTile.height);
+//					mgEnemies.add(bowman);
+//				} else if (spawnRoll > (11*itemFrequency) / numTypes) {
+//					FetyrBomber bomber = new FetyrBomber(baseTile.x, baseTile.y + baseTile.height);
+//					mgEnemies.add(bomber);
+//				} else if (spawnRoll > (10*itemFrequency) / numTypes) {
+//					Scorpain scorpain = new Scorpain(baseTile.x, baseTile.y + baseTile.height);
+//					mgEnemies.add(scorpain);
+//				} else if (spawnRoll > (9*itemFrequency) / numTypes) {
+//					Ghosto ghosto = new Ghosto(baseTile.x, baseTile.y+baseTile.height);
+//					mgEnemies.add(ghosto);
+//				} else if (spawnRoll > (8*itemFrequency) / numTypes) {
+//						SkeletonFloatingHead skelehead = new SkeletonFloatingHead(baseTile.x, baseTile.y + baseTile.height);
+//						mgEnemies.add(skelehead);
+//				} else if (spawnRoll > (7*itemFrequency) / numTypes) {
+//						GroundSpikes spikes = new GroundSpikes(baseTile.x, baseTile.y + baseTile.height);
+//						mgEnemies.add(spikes);
+//				} else if (spawnRoll > (6*itemFrequency) / numTypes) {
+//
+//					System.out.println("trying to spawn item room door");
+//					if (!hasSpawnedItemRoomDoor) {
+//						System.out.println("spawned!");
+//						ItemRoomDoor itemDoor = new ItemRoomDoor(baseTile.x, baseTile.y + baseTile.height, 0, 0, 32, 32);
+//						mgItems.add(itemDoor);
+//						hasSpawnedItemRoomDoor = true;
+//					}
+//				} else if (spawnRoll > (5*itemFrequency) / numTypes) {
+//					if (!hasSpawnedShopDoor) {
+//						ShopDoor sdoor = new ShopDoor(baseTile.x, baseTile.y + baseTile.height, 0, 0, 32, 32);
+//						mgItems.add(sdoor);
+//						hasSpawnedShopDoor = true;
+//					}
+//
+//				} else if (spawnRoll > (4*itemFrequency) / numTypes) {
+//					// smart enemy
+//					SmartEnemy enemy = new SmartEnemy(baseTile.x, baseTile.y + baseTile.height);
+//					mgEnemies.add(enemy);
+//				} else if (spawnRoll > (3*itemFrequency) / numTypes) {
+//					// flying enemy
+//					Roboto1 robot = new Roboto1(baseTile.x, baseTile.y + baseTile.height, true);
+//
+//					robot.flying = true;
+//					mgEnemies.add(robot);
+//				} else if (spawnRoll > (2*itemFrequency) / numTypes) {
+//					// shooting enemy
+//					ShootingGuy enemy = new ShootingGuy(baseTile.x, baseTile.y + baseTile.height);
+//					enemy.width = 32;
+//					enemy.height = 32;
+//					mgEnemies.add(enemy);
+//				} else if (spawnRoll > (itemFrequency) / numTypes) {
+//					// normal enemy
+//					Roboto1 robot = new Roboto1(baseTile.x, baseTile.y + baseTile.height, false);
+//
+//					robot.flying = false;
+//					mgEnemies.add(robot);
+//				} else {
+//					// box
+//					BaseBox box = new BaseBox(baseTile.x, baseTile.y + baseTile.height,0,0,22,22);
+//					mgEnemies.add(box);
+//				}
+//
+//			}
+//		}
 	}
 
 	public void shakeCamera() {
@@ -1669,5 +2303,31 @@ public class GdxShooter2 extends ApplicationAdapter {
 			//cameraYAdjustment = 0;
 
 		}
+	}
+
+	public static Player getPlayer() {
+		return player;
+	}
+
+	public static void drawLines(SpriteBatch batch) {
+
+		for (int i = 0; i < lineStarts.size() && i < lineEnds.size(); i++) {
+			Gdx.gl.glLineWidth(2);
+//        lineRenderer
+			lineRenderer.setProjectionMatrix(batch.getProjectionMatrix());
+			lineRenderer.begin(ShapeRenderer.ShapeType.Line);
+			lineRenderer.setColor(Color.LIGHT_GRAY);
+			lineRenderer.line(lineStarts.get(i).x,lineStarts.get(i).y, lineEnds.get(i).x, lineEnds.get(i).y);
+			lineRenderer.end();
+		}
+		lineStarts.clear();
+		lineEnds.clear();
+	}
+
+	public static void setLineToDraw(float x1, float y1, float x2, float y2) {
+		Vector2 vector1 = new Vector2(x1, y1);
+		Vector2 vector2 = new Vector2(x2, y2);
+		lineStarts.add(vector1);
+		lineEnds.add(vector2);
 	}
 }

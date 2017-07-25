@@ -10,7 +10,7 @@ public class BaseTile {
     int y;
     int xDist; // distance from block to character x plane
     int yDist; // distance from block to character y plane
-    int drawDist = 750; // max distance from player that this should still be drawn and updated
+    int drawDist = 900; // max distance from player that this should still be drawn and updated
     boolean isActive; // boolean to tell whether it is too far away and should be drawn
     boolean passiveTile;
     boolean isFlipped = false;

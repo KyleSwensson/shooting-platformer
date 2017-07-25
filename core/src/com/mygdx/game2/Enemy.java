@@ -23,6 +23,9 @@ public abstract class Enemy extends Character {
     int health = 0;
     String enemyType = "";
     Random random = new Random();
+    boolean isDangerous = true;
+
+    boolean isHittable = true;
 
     public String getType() {
         return enemyType;

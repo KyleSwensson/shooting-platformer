@@ -11,9 +11,12 @@ import java.util.Random;
  * Created by kyle on 9/16/2015.
  */
 public class Player extends Character {
+
+    private final static double GRAVITY_ACCELERATION = 0.4;
+
     boolean facingRight = false; // if facing = false player is facing left, if facing = true player = facing right
-    int x = 0;
-    int y = 0;
+    float x = 0;
+    float y = 0;
 
     int[] heldWeapons = new int[10]; // array telling the game which weapons you are capable of using, you start with only the pistol unlocked
     // 0 is empty (no unlock)
@@ -32,10 +35,25 @@ public class Player extends Character {
     //TODO: make it so player cannot select weapons he doesn't own
     //TODO: make it so pickups unlock weapons
 
+    static final float GRAPPLE_PULL_VELOCITY = 14;
+    static final float GRAPPLE_HOOK_VELOCITY = 40;
+    static final float GRAPPLE_HOOK_DIAGONAL_VELX = (float)Math.sqrt((GRAPPLE_HOOK_VELOCITY*GRAPPLE_HOOK_VELOCITY)/2);
+    static final float GRAPPLE_HOOK_DIAGONAL_VELY = (float)Math.sqrt((GRAPPLE_HOOK_VELOCITY*GRAPPLE_HOOK_VELOCITY)/2);
+
+
+    //tells whether a grappling hook is currently travelling through the air, if it is then another grappling hook should not be shot
+    boolean grappleHookTravelling;
+    //tells whether a grappling hook has landed and is currently pulling the player
+    boolean beingPulledByGrapplingHook;
+    //the location that the player is being pulled to by the grappling hook
+    float grapplingHookX;
+    float grapplingHookY;
+
+    GrappleHook activeGrapplingHook;
 
     // when player goes into a shop his x and y reset for the shop, the oldx and oldy keep track of where the player was when in main game
-    int oldX = 0;
-    int oldY = 0;
+    float oldX = 0;
+    float oldY = 0;
 
     int fuel = 0; //player has fuel for a floating spell that shoots him up, regains 1 fuel per second, flying costs 3 fuel per second
     int maxFuel = 500;
@@ -57,17 +75,15 @@ public class Player extends Character {
     float bgYOffset = 0;
 
     int flameAmmo;
-    int maxFlameAmmo = 1000;
+    int maxFlameAmmo = 200;
     int machineAmmo;
-    int maxMachineAmmo = 400;
+    int maxMachineAmmo = 125;
     int cannonAmmo;
-    int maxCannonAmmo = 30;
+    int maxCannonAmmo = 40;
     int rocketAmmo;
-    int maxRocketAmmo = 15;
+    int maxRocketAmmo = 10;
     int grenadeAmmo;
-    int maxGrenadeAmmo = 8;
-
-
+    int maxGrenadeAmmo = 15;
 
 
     int wallSlidingDustFrames = 0; // how many frames the player is sliding down a wall before dust is made
@@ -92,10 +108,9 @@ public class Player extends Character {
 
     int shakeFrames = 0;
     Array<BaseTile> collidedTiles = new Array<BaseTile>();
-    boolean canJump = false;
 
     int bulletSpawnCounter = 0;
-    final int bullet1SpawnTime = 14;
+    final int bullet1SpawnTime = 16;
     final int flameSpawnTime = 1;
     final int machineSpawnTime = 5;
     final int cannonSpawnTime = 25;
@@ -111,6 +126,17 @@ public class Player extends Character {
     int rightWallFrames = 0; // if they hit 0 touchingLeftWall turns false
     Rectangle rect = new Rectangle();
 
+    boolean isRolling;
+    boolean isRollingLeft;
+    boolean rollCoolingDown;
+    int rollTime;
+    int rollCooldownTime;
+    final int maxRollTime = 25;
+    final int maxRollCooldownTime = 15;
+    int rollImage = 0;
+    int rollFrameChangeTimer = 0;
+    final int rollFrameChangeTime = 5;
+
     public Player() {
         health = maxHealth;
         fuel = maxFuel;
@@ -122,6 +148,8 @@ public class Player extends Character {
     }
 
     public void update(Array<PlayerBullet> bullets, Array<BaseTile> baseTiles, Array<Particle> particle1s, Array<Enemy> enemies, Array<Animation> anims, Array<Item> items, Array<EnemyBullet> enemyBullets, int mainState) {
+
+
         if (health <= 0) {
             health = 0;
             gameOver = true;
@@ -151,12 +179,27 @@ public class Player extends Character {
             idleImage = 0;
         }
 
+        if (drawType.equals("Roll")) {
+            rollFrameChangeTimer++;
+            if (rollFrameChangeTimer >= rollFrameChangeTime) {
+                rollFrameChangeTimer = 0;
+                rollImage++;
+                if (rollImage > 4) {
+                    rollImage = 4;
+                }
+            }
+        } else {
+            rollFrameChangeTimer = 0;
+            rollImage = 0;
+        }
+
         // tells the game what animation type to draw the player in
-        if (touchingGround) {
+        if (isRolling) {
+            drawType = "Roll";
+        } else if (touchingGround) {
             if (Math.abs(velX) >= 2) {
                 drawType = "Run";
-            }
-            else drawType = "Idle";
+            } else drawType = "Idle";
         } else if (touchingRightWall || touchingLeftWall) {
             drawType = "WallCling";
         } else if (velY > 0) {
@@ -168,9 +211,8 @@ public class Player extends Character {
         if (shakeFrames > 0) {
             shakeFrames--;
         }
-        if(Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
 
-
+        if (Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
             if (heldWeapons[1] == 0) {
                 // special case where there is only one weapon, dont do anything
             } else {
@@ -197,41 +239,84 @@ public class Player extends Character {
             gunType = heldWeapons[0];
         }
 
-        if (touchingGround) {
+        if (rollCoolingDown) {
+            rollCooldownTime--;
+            if (rollCooldownTime < 0) {
+                rollCoolingDown = false;
+            }
+        }
+
+        if (beingPulledByGrapplingHook) {
+            float diffX = grapplingHookX - this.x;
+            float diffY = grapplingHookY - this.y;
+
+            float dist = (float)(Math.sqrt(diffX*diffX + diffY*diffY));
+            float percentX = diffX / dist;
+            float percentY = diffY / dist;
+
+            velX = percentX* GRAPPLE_PULL_VELOCITY;
+            velY = percentY* GRAPPLE_PULL_VELOCITY;
+        } else if (isRolling) {
+            if (rollTime > 15) {
+                if (isRollingLeft) {
+                    velX = -7;
+                } else {
+                    velX = 7;
+                }
+            } else if (rollTime > 7) {
+                if (isRollingLeft) {
+                    velX = -6;
+                } else {
+                    velX = 6;
+                }
+            } else {
+                if (isRollingLeft) {
+                    velX = -5;
+                } else {
+                    velX = 5;
+                }
+            }
+
+            rollTime--;
+            if (rollTime < 0) {
+                isRolling = false;
+                rollImage = 0;
+                rollCoolingDown = true;
+                rollCooldownTime = maxRollCooldownTime;
+            }
+
+
+        } else if (touchingGround) {
             if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
                 if (velX >= 0 && !touchingLeftWall) {
                     for (int i = 0; i < 3; i++) {
-                        DustParticle part = new DustParticle(x + ((i + 3) * (width / 6)), y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
+                        DustParticle part = new DustParticle((int)x + ((i + 3) * (width / 6)), (int)y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
                         particle1s.add(part);
                     }
                 }
 
                 facingRight = false;
                 if (velX > -6) velX -= 2;
-            }
-            else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+            } else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
                 if (velX <= 0 && !touchingRightWall) {
                     for (int i = 0; i < 3; i++) {
-                        DustParticle part = new DustParticle(x + (i * (width / 6)), y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
+                        DustParticle part = new DustParticle((int)x + (i * (width / 6)), (int)y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
                         particle1s.add(part);
                     }
                 }
 
                 facingRight = true;
                 if (velX < 6) velX += 2;
-            }
-            else if (velX > 0) velX -= 2;
+            } else if (velX > 0) velX -= 2;
             else if (velX < 0) velX += 2;
         } else {
             if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
                 facingRight = false;
                 if (velX > -6) velX -= .5;
-            }
-            else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+            } else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
                 facingRight = true;
                 if (velX < 6) velX += .5;
-            }
-            else if (velX > 0) velX -= .5;
+            } else if (velX > 0) velX -= .5;
             else if (velX < 0) velX += .5;
         }
 
@@ -242,16 +327,16 @@ public class Player extends Character {
         }
 
 
-        if (touchingLeftWall || touchingRightWall)  {
+        if (touchingLeftWall || touchingRightWall) {
             if (wallSlidingDustFrames < wallSlidingDustMax) {
                 wallSlidingDustFrames++;
             } else {
                 if (!touchingGround) {
                     if (touchingLeftWall) {
-                        DustParticle part = new DustParticle(x, y + height / 2, 0, 0, "dust", 100);
+                        DustParticle part = new DustParticle((int)x, (int)y + height / 2, 0, 0, "dust", 100);
                         particle1s.add(part);
                     } else {
-                        DustParticle part = new DustParticle(x + width - 4, y + height / 2, 0, 0, "dust", 100);
+                        DustParticle part = new DustParticle((int)x + width - 4, (int)y + height / 2, 0, 0, "dust", 100);
                         particle1s.add(part);
                     }
                 }
@@ -259,18 +344,31 @@ public class Player extends Character {
             }
             if (velY < -3) velY = -3;
         }
-            if (velY < 15) velY -= .3;
 
-        if (velY > 8) velY = 8;
+        if (!beingPulledByGrapplingHook) {
+            if (velY < 15) {
+                if (Gdx.input.isKeyPressed(Input.Keys.Z) && velY > 1) {
+                    velY -= GRAVITY_ACCELERATION * 0.65;
+                } else {
+                    velY -= GRAVITY_ACCELERATION;
+                }
+            }
+
+            if (velY > 8) velY = 8;
+        }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
-            if (canJump) {
+            if (playerCanJump()) {
+                if (isRolling) {
+                    isRolling = false;
+                    rollCoolingDown = true;
+                    rollCooldownTime = maxRollCooldownTime;
+                }
                 if (touchingGround) {
                     y += 2;
                     velY = 7.5f;
-                    canJump = false;
-                    for(int i = 0; i < 5; i++) {
-                        DustParticle part = new DustParticle(x + (i * (width / 5)), y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
+                    for (int i = 0; i < 5; i++) {
+                        DustParticle part = new DustParticle((int)x + (i * (width / 5)), (int)y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
                         particle1s.add(part);
                     }
 
@@ -279,9 +377,8 @@ public class Player extends Character {
                         y += 2;
                         velY = 7.5f;
                         velX = 4f;
-                        canJump = false;
-                        for(int i = 0; i < 5; i++) {
-                            DustParticle part = new DustParticle(x + (i * (width / 5)), y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
+                        for (int i = 0; i < 5; i++) {
+                            DustParticle part = new DustParticle((int)x + (i * (width / 5)), (int)y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
                             particle1s.add(part);
                         }
                     }
@@ -289,9 +386,8 @@ public class Player extends Character {
                         y += 2;
                         velY = 7.5f;
                         velX = -4f;
-                        canJump = false;
-                        for(int i = 0; i < 5; i++) {
-                            DustParticle part = new DustParticle(x + (i * (width / 5)), y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
+                        for (int i = 0; i < 5; i++) {
+                            DustParticle part = new DustParticle((int)x + (i * (width / 5)), (int)y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
                             particle1s.add(part);
                         }
                     }
@@ -299,30 +395,36 @@ public class Player extends Character {
 
 
             }
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.C)) {
+            if (playerCanRoll()) {
+                isRolling = true;
+                rollTime = maxRollTime;
+                isRollingLeft = !facingRight;
+                rollImage = 0;
+                rollFrameChangeTimer = rollFrameChangeTime;
+            }
         }
 
-        if (Gdx.input.isKeyPressed(Input.Keys.K)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.K)) {
             health = 0;
         }
 
 
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
             if (fuel > 0) {
-                fuel -=3;
+                fuel -= 3;
                 velY += .5;
-                FlyWaveParticle part = new FlyWaveParticle((int)(x + random.nextDouble()*width), y, 0,0, "flyingSpin", 80);
+                FlyWaveParticle part = new FlyWaveParticle((int) (x + random.nextDouble() * width), (int)y, 0, 0, "flyingSpin", 80);
                 particle1s.add(part);
             }
             if (fuel < 0) fuel = 0;
         }
         if (fuel > maxFuel) fuel = maxFuel;
         if (health > maxHealth) health = maxHealth;
-
-
-
-        x += velX;
-
-        y += velY;
+        if (!grappleHookTravelling) {
+            x += velX;
+            y += velY;
+        }
 
         rect.x = x;
         rect.y = y;
@@ -333,20 +435,20 @@ public class Player extends Character {
             if (rect.overlaps(item.getRect())) {
                 if (item.getType().equals("Health")) {
                     item.setDestroyed(true);
-                    health ++;
+                    health++;
                 } else if (item.getType().equals("Mana")) {
                     item.setDestroyed(true);
                     fuel += 100;
                 } else if (item.getType().equals("Coin")) {
                     item.setDestroyed(true);
-                    numCoins ++;
+                    numCoins++;
 
                 }
             }
         }
 
 
-        if (mainState == 0) {
+        if (mainState == 0 || mainState == 4) {
             handleMakeBullets(bullets, particle1s);
         }
 
@@ -359,16 +461,13 @@ public class Player extends Character {
             }
         }
 
-        canJump = false;
         if (leftWallFrames > 0) {
-            leftWallFrames --;
-            canJump = true;
+            leftWallFrames--;
         } else {
             touchingLeftWall = false;
         }
         if (rightWallFrames > 0) {
-            rightWallFrames --;
-            canJump = true;
+            rightWallFrames--;
         } else {
             touchingRightWall = false;
         }
@@ -380,13 +479,13 @@ public class Player extends Character {
         checkRobotsHit(enemies, anims, enemyBullets);
 
 
-        bgXOffset += velX/3;
-        bgYOffset += velY/3;
+        bgXOffset += velX / 3;
+        bgYOffset += velY / 3;
 
     }
 
     public boolean alreadyHasItem(int itemId) {
-        for (int i =0; i < heldWeapons.length; i++) {
+        for (int i = 0; i < heldWeapons.length; i++) {
             if (heldWeapons[i] == itemId) return true;
         }
         return false;
@@ -405,9 +504,9 @@ public class Player extends Character {
     }
 
     private void checkRobotsHit(Array<Enemy> enemies, Array<Animation> anims, Array<EnemyBullet> enemyBullets) {
-        if (!isHit) {
+        if (!playerIsInvincible()) {
             for (Enemy enemy : enemies) {
-                if (this.rect.overlaps(enemy.getRect()) && !enemy.enemyType.equals("safe")) {
+                if (this.rect.overlaps(enemy.getRect()) && !isHit && enemy.isDangerous) {
                     isHit = true;
                     hitTime = 70;
                     health--;
@@ -426,12 +525,14 @@ public class Player extends Character {
                 }
             }
             for (EnemyBullet bul : enemyBullets) {
-                if (this.rect.overlaps(bul.getRect())) {
+                if (this.rect.overlaps(bul.getRect()) && !isHit && bul.getIsDangerous()) {
                     isHit = true;
                     hitTime = 70;
                     health--;
 
-                    bul.setDestroyed(true);
+                    if (bul.getDestroyOnHit()) {
+                        bul.setDestroyed(true);
+                    }
 
                     HitSquareAnimation anim = new HitSquareAnimation();
                     anim.x = x;
@@ -447,7 +548,7 @@ public class Player extends Character {
                 }
             }
         } else {
-            hitTime --;
+            hitTime--;
             if (hitTime <= 0) {
                 hitTime = 0;
                 isHit = false;
@@ -460,67 +561,64 @@ public class Player extends Character {
         //during this frame
         bulletSpawnCounter++;
 
-        if(Gdx.input.isKeyPressed(Input.Keys.X)) {
-            if (gunType == 1) {
-                if (bulletSpawnCounter > bullet1SpawnTime) {
+        if (Gdx.input.isKeyPressed(Input.Keys.X)) {
+            if (playerCanShoot()) {
+                if (gunType == 1) {
+                    if (bulletSpawnCounter > bullet1SpawnTime) {
 
-                    shakeFrames = 2;
-                    bulletSpawnCounter = 0;
-                    if (facingRight) {
-                        PistolBullet bullet = new PistolBullet();
-                        bullet.x = this.x;
-                        bullet.y = this.y + 8;
-                        bullet.velX = 12;
+                        shakeFrames = 2;
+                        bulletSpawnCounter = 0;
+                        if (facingRight) {
+                            PistolBullet bullet = new PistolBullet();
+                            bullet.x = this.x;
+                            bullet.y = this.y + 8;
+                            bullet.velX = 12;
 
-                        bullet.facingRight = true;
-                        bullet.bulletType = "Normal";
-                        bullets.add(bullet);
-
-
-
-
-                        ShellParticle part = new ShellParticle(this.x,
-                                this.y+(this.height/2),
-                                -4 + random.nextInt(3) - 1,
-                                5+random.nextInt(3) - 1,
-                                "Shell",
-                                120);
-                        particle1s.add(part);
-                    } else {
-                        PistolBullet bullet = new PistolBullet();
-                        bullet.x = this.x;
-                        bullet.y = this.y + 8;
-                        bullet.velX = -12;
-
-                        bullet.facingRight = false;
-                        bullet.bulletType = "Normal";
-                        bullets.add(bullet);
+                            bullet.facingRight = true;
+                            bullet.bulletType = "Normal";
+                            bullets.add(bullet);
 
 
+                            ShellParticle part = new ShellParticle((int)this.x,
+                                    (int)this.y + (this.height / 2),
+                                    -4 + random.nextInt(3) - 1,
+                                    5 + random.nextInt(3) - 1,
+                                    "Shell",
+                                    120);
+                            particle1s.add(part);
+                        } else {
+                            PistolBullet bullet = new PistolBullet();
+                            bullet.x = this.x;
+                            bullet.y = this.y + 8;
+                            bullet.velX = -12;
 
-                        ShellParticle part = new ShellParticle(this.x,
-                                this.y+(this.height/2),
-                                4 + random.nextInt(3) - 1,
-                                5+random.nextInt(3) - 1,
-                                "Shell",
-                                120);
+                            bullet.facingRight = false;
+                            bullet.bulletType = "Normal";
+                            bullets.add(bullet);
 
-                        particle1s.add(part);
+
+                            ShellParticle part = new ShellParticle((int)this.x,
+                                    (int)this.y + (this.height / 2),
+                                    4 + random.nextInt(3) - 1,
+                                    5 + random.nextInt(3) - 1,
+                                    "Shell",
+                                    120);
+
+                            particle1s.add(part);
+                        }
                     }
-                }
 
 
-            }
-            else if (gunType == 4 && flameAmmo > 0) {
+                } else if (gunType == 4 && flameAmmo > 0) {
 
                     if (bulletSpawnCounter > flameSpawnTime) {
-                        flameAmmo --;
+                        flameAmmo--;
                         shakeFrames = 1;
                         bulletSpawnCounter = 0;
                         if (facingRight) {
 
 
-                            for (int i = 0; i<3; i++) {
+                            for (int i = 0; i < 3; i++) {
                                 PlayerFire bullet = new PlayerFire();
                                 bullet.x = this.x;
                                 bullet.y = this.y + 8;
@@ -548,244 +646,383 @@ public class Player extends Character {
 
                         }
                     }
-            } else if (gunType == 3 && machineAmmo > 0) {
+                } else if (gunType == 3 && machineAmmo > 0) {
 
-                if (bulletSpawnCounter > machineSpawnTime) {
-                    machineAmmo --;
-                    shakeFrames = 2;
-                    bulletSpawnCounter = 0;
-                    if (facingRight) {
-                        MiniBullet bullet = new MiniBullet();
-                        bullet.x = this.x;
-                        bullet.y = this.y + 8;
-                        bullet.velX = 12;
+                    if (bulletSpawnCounter > machineSpawnTime) {
+                        machineAmmo--;
+                        shakeFrames = 2;
+                        bulletSpawnCounter = 0;
+                        if (facingRight) {
+                            MiniBullet bullet = new MiniBullet();
+                            bullet.x = this.x;
+                            bullet.y = this.y + 8;
+                            bullet.velX = 12;
 
-                        bullet.facingRight = true;
-                        bullet.bulletType = "Mini";
-                        bullets.add(bullet);
+                            bullet.facingRight = true;
+                            bullet.bulletType = "Mini";
+                            bullets.add(bullet);
 
-                        this.rect.x -= 2;
-
-
-
-                        ShellParticle part = new ShellParticle(this.x,
-                                this.y+(this.height/2),
-                                -4 + random.nextInt(3) - 1,
-                                5+random.nextInt(3) - 1,
-                                "Shell",
-                                10);
-                        particle1s.add(part);
-                    } else {
-                        MiniBullet bullet = new MiniBullet();
-                        bullet.x = this.x;
-                        bullet.y = this.y + 8;
-                        bullet.velX = -12;
-
-                        bullet.facingRight = false;
-                        bullet.bulletType = "Mini";
-                        bullets.add(bullet);
-
-                        this.rect.x += 2;
+                            this.rect.x -= 2;
 
 
-
-                        ShellParticle part = new ShellParticle(this.x,
-                                this.y+(this.height/2),
-                                4 + random.nextInt(3) - 1,
-                                5+random.nextInt(3) - 1,
-                                "Shell",
-                                10);
-
-                        particle1s.add(part);
-                    }
-                }
-            } else if (gunType == 2 && cannonAmmo > 0) {
-
-                if (bulletSpawnCounter > cannonSpawnTime) {
-                    cannonAmmo --;
-                    shakeFrames = 5;
-                    bulletSpawnCounter = 0;
-
-                    if (facingRight) {
-                        CannonBall bullet = new CannonBall();
-                        bullet.x = this.x;
-                        bullet.y = this.y + 8;
-                        bullet.velX = 4;
-                        bullet.bulletType = "Cannon";
-                        bullet.facingRight = true;
-                        bullets.add(bullet);
-                        this.rect.x -= 5;
-
-
-                        for (int i = 0; i<3; i++) {
-                            SparkParticle part = new SparkParticle(this.x,
-                                    this.y + (this.height / 2),
-                                    random.nextInt(7) - 5,
-                                    random.nextInt(7) - 5,
-                                    "Spark",
-                                    20);
-                            part.width = 2;
-                            part.height = 2;
+                            ShellParticle part = new ShellParticle((int)this.x,
+                                    (int)this.y + (this.height / 2),
+                                    -4 + random.nextInt(3) - 1,
+                                    5 + random.nextInt(3) - 1,
+                                    "Shell",
+                                    10);
                             particle1s.add(part);
-                        }
+                        } else {
+                            MiniBullet bullet = new MiniBullet();
+                            bullet.x = this.x;
+                            bullet.y = this.y + 8;
+                            bullet.velX = -12;
+
+                            bullet.facingRight = false;
+                            bullet.bulletType = "Mini";
+                            bullets.add(bullet);
+
+                            this.rect.x += 2;
 
 
-                    } else {
-                        CannonBall bullet = new CannonBall();
-                        bullet.x = this.x;
-                        bullet.y = this.y + 8;
-                        bullet.velX = -4;
-                        bullet.bulletType = "Cannon";
+                            ShellParticle part = new ShellParticle((int)this.x,
+                                    (int)this.y + (this.height / 2),
+                                    4 + random.nextInt(3) - 1,
+                                    5 + random.nextInt(3) - 1,
+                                    "Shell",
+                                    10);
 
-
-                        this.rect.x += 5;
-
-                        bullet.facingRight = false;
-                        bullets.add(bullet);
-
-
-                        for (int i = 0; i<3; i++) {
-                            SparkParticle part = new SparkParticle(this.x,
-                                    this.y + (this.height / 2),
-                                    random.nextInt(7) - 5,
-                                    random.nextInt(7) - 5,
-                                    "Spark",
-                                    20);
-                            part.width = 2;
-                            part.height = 2;
                             particle1s.add(part);
                         }
                     }
-                }
+                } else if (gunType == 2 && cannonAmmo > 0) {
 
-            } else if (gunType == 5 && rocketAmmo > 0) {
+                    if (bulletSpawnCounter > cannonSpawnTime) {
+                        cannonAmmo--;
+                        shakeFrames = 5;
+                        bulletSpawnCounter = 0;
 
-                if (bulletSpawnCounter > rocketSpawnTime) {
-                    rocketAmmo --;
-                    shakeFrames = 6;
-                    bulletSpawnCounter = 0;
-                    if (facingRight) {
-                        Rocket bullet = new Rocket();
-                        bullet.x = this.x;
-                        bullet.y = this.y + 8;
-                        bullet.velX = 12;
-                        bullet.bulletType = "Rocket";
-                        bullet.facingRight = true;
-                        bullets.add(bullet);
-                    } else {
-                        Rocket bullet = new Rocket();
-                        bullet.x = this.x;
-                        bullet.y = this.y + 8;
-                        bullet.velX = -12;
+                        if (facingRight) {
+                            CannonBall bullet = new CannonBall();
+                            bullet.x = this.x;
+                            bullet.y = this.y + 8;
+                            bullet.velX = 4;
+                            bullet.bulletType = "Cannon";
+                            bullet.facingRight = true;
+                            bullets.add(bullet);
+                            this.rect.x -= 5;
 
-                        bullet.bulletType = "Rocket";
-                        bullet.facingRight = false;
-                        bullets.add(bullet);
+
+                            for (int i = 0; i < 3; i++) {
+                                SparkParticle part = new SparkParticle((int)this.x,
+                                        (int)this.y + (this.height / 2),
+                                        random.nextInt(7) - 5,
+                                        random.nextInt(7) - 5,
+                                        "Spark",
+                                        20);
+                                part.width = 2;
+                                part.height = 2;
+                                particle1s.add(part);
+                            }
+
+
+                        } else {
+                            CannonBall bullet = new CannonBall();
+                            bullet.x = this.x;
+                            bullet.y = this.y + 8;
+                            bullet.velX = -4;
+                            bullet.bulletType = "Cannon";
+
+
+                            this.rect.x += 5;
+
+                            bullet.facingRight = false;
+                            bullets.add(bullet);
+
+
+                            for (int i = 0; i < 3; i++) {
+                                SparkParticle part = new SparkParticle((int)this.x,
+                                        (int)this.y + (this.height / 2),
+                                        random.nextInt(7) - 5,
+                                        random.nextInt(7) - 5,
+                                        "Spark",
+                                        20);
+                                part.width = 2;
+                                part.height = 2;
+                                particle1s.add(part);
+                            }
+                        }
+                    }
+
+                } else if (gunType == 5 && rocketAmmo > 0) {
+
+                    if (bulletSpawnCounter > rocketSpawnTime) {
+                        rocketAmmo--;
+                        shakeFrames = 6;
+                        bulletSpawnCounter = 0;
+                        if (facingRight) {
+                            Rocket bullet = new Rocket();
+                            bullet.x = this.x;
+                            bullet.y = this.y + 8;
+                            bullet.velX = 12;
+                            bullet.bulletType = "Rocket";
+                            bullet.facingRight = true;
+                            bullets.add(bullet);
+                        } else {
+                            Rocket bullet = new Rocket();
+                            bullet.x = this.x;
+                            bullet.y = this.y + 8;
+                            bullet.velX = -12;
+
+                            bullet.bulletType = "Rocket";
+                            bullet.facingRight = false;
+                            bullets.add(bullet);
+                        }
+                    }
+                } else if (gunType == 6 && grenadeAmmo > 0) {
+
+                    if (bulletSpawnCounter > grenadeSpawnTime) {
+                        grenadeAmmo--;
+                        bulletSpawnCounter = 0;
+                        if (facingRight) {
+                            Grenade bullet = new Grenade();
+                            bullet.x = this.x;
+                            bullet.y = this.y + 8;
+                            bullet.velX = 5;
+                            bullet.velY = 5;
+                            bullet.bulletType = "Grenade";
+                            bullet.facingRight = true;
+                            bullets.add(bullet);
+                        } else {
+                            Grenade bullet = new Grenade();
+                            bullet.x = this.x;
+                            bullet.y = this.y + 8;
+                            bullet.velX = -5;
+                            bullet.velY = 5;
+                            bullet.bulletType = "Grenade";
+                            bullet.facingRight = true;
+                            bullets.add(bullet);
+                        }
                     }
                 }
-            } else if (gunType == 6 && grenadeAmmo > 0) {
+            }
+        }
 
-                if (bulletSpawnCounter > grenadeSpawnTime) {
-                    grenadeAmmo --;
-                    bulletSpawnCounter = 0;
-                    if (facingRight) {
-                        Grenade bullet = new Grenade();
-                        bullet.x = this.x;
-                        bullet.y = this.y + 8;
-                        bullet.velX = 7;
-                        bullet.velY = 5;
-                        bullet.bulletType = "Grenade";
-                        bullet.facingRight = true;
-                        bullets.add(bullet);
+        if (Gdx.input.isKeyJustPressed(Input.Keys.G)) {
+            if (beingPulledByGrapplingHook) {
+                triggerEndOfGrapplingHookPull();
+            } else if (playerCanShoot() && !grappleHookTravelling) {
+                shakeFrames = 2;
+                //TODO: this case should be if the right bumper is not held down
+                if (!Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
+                    GrappleHook bullet;
+                    if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+                        bullet = new GrappleHook(this.x, this.y + 14, GRAPPLE_HOOK_DIAGONAL_VELX, GRAPPLE_HOOK_DIAGONAL_VELY, -45);
+                    } else if (Gdx.input.isKeyPressed(Input.Keys.LEFT)){
+                        bullet = new GrappleHook(this.x, this.y + 14, -GRAPPLE_HOOK_DIAGONAL_VELX, GRAPPLE_HOOK_DIAGONAL_VELY, 45);
                     } else {
-                        Grenade bullet = new Grenade();
-                        bullet.x = this.x;
-                        bullet.y = this.y + 8;
-                        bullet.velX = -7;
-                        bullet.velY = 5;
-                        bullet.bulletType = "Grenade";
-                        bullet.facingRight = true;
+                        bullet = new GrappleHook(this.x,this.y+14, 0, GRAPPLE_HOOK_VELOCITY, 0);
+                    }
+                    bullets.add(bullet);
+                    this.activeGrapplingHook = bullet;
+                    grappleHookTravelling = true;
+
+                } else {
+                    if (facingRight) {
+                        GrappleHook bullet = new GrappleHook(this.x, this.y + 14, GRAPPLE_HOOK_VELOCITY, 0, -90);
                         bullets.add(bullet);
+                        this.activeGrapplingHook = bullet;
+                        grappleHookTravelling = true;
+                    } else {
+                        GrappleHook bullet = new GrappleHook(this.x, this.y + 14, -GRAPPLE_HOOK_VELOCITY,0, 90);
+                        bullets.add(bullet);
+                        this.activeGrapplingHook = bullet;
+                        grappleHookTravelling = true;
                     }
                 }
             }
         }
     }
 
-    public void checkTilesHit(Array<BaseTile> baseTiles,Array<Particle> particle1s) {
+    public boolean shouldDrawWeapon() {
+        return (!drawType.equals("Roll"));
+    }
 
+    public void triggerGrapplingHookPull(GrappleHook hook) {
+        this.grappleHookTravelling = false;
+        this.beingPulledByGrapplingHook = true;
+        this.grapplingHookX = hook.x;
+        this.grapplingHookY = hook.y;
+    }
+
+    public void triggerEndOfGrapplingHookPull() {
+        this.beingPulledByGrapplingHook = false;
+        this.grappleHookTravelling = false;
+        this.activeGrapplingHook = null;
+    }
+
+    public void checkTilesHit(Array<BaseTile> baseTiles, Array<Particle> particle1s) {
         for (BaseTile tile : baseTiles) {
             if (tile.isActive) {
                 if (rect.overlaps(tile.rect)) {
 
-                    float rect1Top = rect.y + rect.height;
-                    float rect1Bot = rect.y;
-                    float rect1Left = rect.x;
-                    float rect1Right = rect.x + rect.width;
                     float rect2Top = tile.rect.y + tile.rect.height;
                     float rect2Bot = tile.rect.y;
                     float rect2Left = tile.rect.x;
                     float rect2Right = tile.rect.x + tile.rect.width;
-                    float leftPassedDistance = Math.abs(rect2Right - rect1Left);
-                    float rightPassedDistance = Math.abs(rect1Right - rect2Left);
-                    float topPassedDistance = Math.abs(rect1Top - rect2Bot);
-                    float bottomPassedDistance = Math.abs(rect2Top - rect1Bot);
-                    String directionLeastPassed;
-                    if (leftPassedDistance < rightPassedDistance &&
-                            leftPassedDistance < topPassedDistance &&
-                            leftPassedDistance < bottomPassedDistance) directionLeastPassed = "Left";
-                    else if (rightPassedDistance < topPassedDistance &&
-                            rightPassedDistance < bottomPassedDistance) directionLeastPassed = "Right";
-                    else if (topPassedDistance < bottomPassedDistance) directionLeastPassed = "Top";
-                    else directionLeastPassed = "Bottom";
-
-                    if (directionLeastPassed.equals("Left")) {
-
-                        //TODO: the problem with wall collision is that the player phases into the wall and then when it falls it hits
-                        // the top of the next block
-                        rect.x = rect2Right;
-                        velX = 0;
-                        canJump = true;
-                        touchingLeftWall = true;
-                        leftWallFrames = 5;
-
-                    } else if (directionLeastPassed.equals("Right")) {
-                        rect.x = rect2Left - rect.width;
-                        velX = 0;
-                        canJump = true;
-                        touchingRightWall = true;
-                        rightWallFrames = 5;
 
 
-                    } else if (directionLeastPassed.equals("Bottom")) {
-                        rect.y = rect2Top;
-                        if (velY < -2) {
-                            for (int i = 0; i < 3; i++) {
-                                DustParticle part = new DustParticle(x + (i * (width / 6)), y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
-                                particle1s.add(part);
+                    if (velY < 0) {
+                        if (velX == 0) {
+                            moveToTopOfBlock(rect2Top, particle1s);
+                        } else if (velX > 0) {
+                            if (tile.coveredLeft) {
+                                moveToTopOfBlock(rect2Top, particle1s);
+                            } else if (tile.coveredTop && tile.coveredBottom) {
+                                // for wall sliding
+                                moveToLeftSideOfBlock(rect2Left);
+                            } else {
+                                checkDirectionLeastPassed(tile, particle1s);
+                            }
+                        } else if (velX < 0) {
+                            if (tile.coveredRight) {
+                                moveToTopOfBlock(rect2Top, particle1s);
+                            } else if (tile.coveredTop && tile.coveredBottom) {
+                                // for wall sliding
+                                moveToRightSideOfBlock(rect2Right);
+                            } else {
+                                checkDirectionLeastPassed(tile, particle1s);
                             }
                         }
-                        velY = 0;
-                        canJump = true;
-                        touchingGround = true;
-                        if (velX < 2 && velX > -2) {
-                            velX = 0;
+                    } else if (velY > 0) {
+                        if (velX == 0) {
+                            moveToBottomOfBlock(rect2Bot);
+                        } else if (velX > 0) {
+                            if (tile.coveredLeft) {
+                                moveToBottomOfBlock(rect2Bot);
+                            } else if (tile.coveredTop && tile.coveredBottom) {
+                                // for wall sliding
+                                moveToLeftSideOfBlock(rect2Left);
+                            } else {
+                                checkDirectionLeastPassed(tile, particle1s);
+                            }
+                        } else if (velX < 0) {
+                            if (tile.coveredRight) {
+                                moveToBottomOfBlock(rect2Bot);
+                            } else if (tile.coveredTop && tile.coveredBottom) {
+                                // for wall sliding
+                                moveToRightSideOfBlock(rect2Right);
+                            } else {
+                                checkDirectionLeastPassed(tile, particle1s);
+                            }
                         }
-
-                    } else if (directionLeastPassed.equals("Top")) {
-                        rect.y = rect2Bot - rect.height;
-                        velY = 0;
-                        touchingCeiling = true;
-
+                    } else if (velY == 0) {
+                        if (velX > 0) {
+                            moveToLeftSideOfBlock(rect2Left);
+                        } else if (velX < 0) {
+                            moveToRightSideOfBlock(rect2Right);
+                        } else {
+                            checkDirectionLeastPassed(tile, particle1s);
+                        }
                     }
 
 
-
                 }
-                y = (int) rect.y;
-                x = (int) rect.x;
+                y = rect.y;
+                x = rect.x;
 
             }
         }
+    }
+
+    private void checkDirectionLeastPassed(BaseTile tile, Array<Particle> particles) {
+        float rect1Top = rect.y + rect.height;
+        float rect1Bot = rect.y;
+        float rect1Left = rect.x;
+        float rect1Right = rect.x + rect.width;
+        float rect2Top = tile.rect.y + tile.rect.height;
+        float rect2Bot = tile.rect.y;
+        float rect2Left = tile.rect.x;
+        float rect2Right = tile.rect.x + tile.rect.width;
+        float leftPassedDistance = Math.abs(rect2Right - rect1Left);
+        float rightPassedDistance = Math.abs(rect1Right - rect2Left);
+        float topPassedDistance = Math.abs(rect1Top - rect2Bot);
+        float bottomPassedDistance = Math.abs(rect2Top - rect1Bot);
+        String directionLeastPassed;
+        if (leftPassedDistance < rightPassedDistance &&
+                leftPassedDistance < topPassedDistance &&
+                leftPassedDistance < bottomPassedDistance) directionLeastPassed = "Left";
+        else if (rightPassedDistance < topPassedDistance &&
+                rightPassedDistance < bottomPassedDistance) directionLeastPassed = "Right";
+        else if (topPassedDistance < bottomPassedDistance) directionLeastPassed = "Top";
+        else directionLeastPassed = "Bottom";
+        //TODO: the problem with wall collision is that the player phases into the wall and then when it falls it hits
+        // the top of the next block
+
+        //TODO: the problem with the player sometimes teleporting when hitting the floor while going really fast is caused by
+        // the player going so deep into the block that he is deeper vertically than he is horizontally, and since
+        //it pushes him back the least deep distance, it pushed him horizontally
+        if (directionLeastPassed.equals("Left")) {
+            moveToRightSideOfBlock(rect2Right);
+        } else if (directionLeastPassed.equals("Right")) {
+            moveToLeftSideOfBlock(rect2Left);
+        } else if (directionLeastPassed.equals("Bottom")) {
+            moveToTopOfBlock(rect2Top, particles);
+        } else if (directionLeastPassed.equals("Top")) {
+            moveToBottomOfBlock(rect2Bot);
+
+        }
+    }
+
+    private void moveToTopOfBlock(float rect2Top, Array<Particle> particles) {
+        rect.y = rect2Top;
+        if (velY < -2) {
+            for (int i = 0; i < 3; i++) {
+                DustParticle part = new DustParticle((int)x + (i * (width / 6)), (int)y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
+                particles.add(part);
+            }
+        }
+        velY = 0;
+        touchingGround = true;
+        if (velX < 2 && velX > -2) {
+            velX = 0;
+        }
+    }
+
+    private void moveToBottomOfBlock(float rect2Bot) {
+        rect.y = rect2Bot - rect.height;
+        velY = 0;
+        touchingCeiling = true;
+    }
+
+    private void moveToRightSideOfBlock(float rect2Right) {
+        rect.x = rect2Right;
+        velX = 0;
+        touchingLeftWall = true;
+        leftWallFrames = 5;
+    }
+
+    private void moveToLeftSideOfBlock(float rect2Left) {
+        rect.x = rect2Left - rect.width;
+        velX = 0;
+        touchingRightWall = true;
+        rightWallFrames = 5;
+    }
+
+
+    private boolean playerCanJump() {
+        return ((touchingGround || touchingLeftWall || touchingRightWall));
+    }
+
+    private boolean playerCanRoll() {
+        return (!isRolling && !rollCoolingDown && touchingGround);
+    }
+
+    public boolean playerIsInvincible() {
+        return (isHit || isRolling);
+    }
+
+    private boolean playerCanShoot() {
+        return !isRolling;
     }
 }

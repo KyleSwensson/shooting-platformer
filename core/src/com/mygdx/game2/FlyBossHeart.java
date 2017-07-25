@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -17,43 +18,72 @@ public class FlyBossHeart extends Enemy implements Boss {
     int yDist; // distance from block to character y plane
     int drawDist = 500; // max distance from player that this should still be drawn and updated
     boolean isActive; // boolean to tell whether it is too far away and should be drawn
-    Texture image = new Texture("bossCrystal.png");
+    Texture crystalImage = new Texture("topazCrystalCenter.png");
+    Texture imageBroken1 = new Texture("crystalBroken1.png");
+    Texture imageBroken2 = new Texture("crystalBroken2.png");
+    Texture imageBroken3 = new Texture("crystalBroken3.png");
 
+
+    int numAliveSubCrystals;
+
+
+    boolean isInvincible; // this starts as true, becomes false when all 4 sub crystals are dead
+
+
+    ArrayList<SubCrystalBoss> subCrystals;
+
+    int timeUntilAttack = 300;
 
     Random random = new Random();
 
     public FlyBossHeart(int x, int y) {
-        this.x = x;
-        this.y = y;
-        health = 500;
-        width = 24;
-        height = 36;
-        image = new Texture("bossCrystal.png");
 
+        health = 40;
+        width = 106;
+        height = 102;
+
+        this.x = x - width/2;
+        this.y = y;
+        enemyType = "FlyBoss";
+        isInvincible = true;
+        subCrystals = new ArrayList<SubCrystalBoss>();
+        numAliveSubCrystals = 4;
+    }
+
+    public void addSubCrystal(SubCrystalBoss sub) {
+        subCrystals.add(sub);
+        sub.setHeart(this);
     }
 
     public Rectangle getRect() {
         return rect;
     }
 
+    public void notifyOfDeath(SubCrystalBoss sub) {
+
+        numAliveSubCrystals --;
+        subCrystals.remove(sub);
+    }
+
     public void update(Array<Enemy> enemies,Array<EnemyBullet> enemyBullets, Array<PlayerBullet> bullets,Array<Item> items, Array<BaseTile> baseTiles, Array<Particle> particle1s, int playerX, int playerY) {
         xDist = (int)Math.abs(playerX - this.x);
         yDist = (int)Math.abs(playerY - this.y);
-        if (Math.sqrt((xDist * xDist) + (yDist * yDist)) > drawDist) isActive = false;
-        else isActive = true;
+        //if (Math.sqrt((xDist * xDist) + (yDist * yDist)) > drawDist) isActive = false;
+        //else isActive = true;
+        isActive = true;
 
 
 
         if (isActive) {
 
-            moveThis(playerX, playerY);
+            //moveThis(playerX, playerY);
 
 
             if (health <= 0) {
                 destroyThis(particle1s, items);
             }
-            x += velX;
-            y += velY;
+            //x += velX;
+            //y += velY;
 
             rect.x = x;
             rect.y = y;
@@ -62,11 +92,71 @@ public class FlyBossHeart extends Enemy implements Boss {
 
             checkTilesHit(baseTiles);
 
+            if (isInvincible) {
+                if (timeUntilAttack > 0) {
+                    timeUntilAttack--;
+                } else {
+                    int attackType = random.nextInt(2);
+                    if (attackType == 0) {
+                        int crystalToAttack = random.nextInt(numAliveSubCrystals) + 1;
+                        int i = 1;
+                        for (SubCrystalBoss sub : subCrystals) {
+                            if (i == crystalToAttack) {
+                                sub.notifyOfAttack(1);
+                            }
+
+                            i++;
+                        }
+                        timeUntilAttack = 180;
+                    } else if (attackType == 1) {
+                        if (numAliveSubCrystals > 1) {
+                            int crystal1ToAttack = random.nextInt(numAliveSubCrystals) + 1;
+                            int crystal2ToAttack = crystal1ToAttack;
+                            while (crystal1ToAttack == crystal2ToAttack) {
+                                crystal2ToAttack = random.nextInt(numAliveSubCrystals) + 1;
+                            }
+
+                            SubCrystalBoss giveToCrystal1 = null;
+                            int i = 1;
+                            for (SubCrystalBoss sub : subCrystals) {
+                                if (i == crystal2ToAttack) {
+                                    giveToCrystal1 = sub;
+                                }
+
+                                i++;
+                            }
+
+                            i = 1;
+                            for (SubCrystalBoss sub : subCrystals) {
+                                if (i == crystal1ToAttack) {
+                                    sub.notifyOfAttack(2, giveToCrystal1);
+                                }
+                                //if (sub.cornerNumber == crystal1ToAttack) {
+                                //    sub.notifyOfAttack(2, giveToCrystal1);
+                                //}
+                                i++;
+                            }
+                        }
+                    }
+                }
+            }
+
         }
     }
 
     public void draw(SpriteBatch batch) {
-        batch.draw(image,x,y,width,height);
+        if (isInvincible) {
+            batch.draw(crystalImage,x,y,width,height);
+
+        } else {
+            if (health > 39) {
+                batch.draw(imageBroken1, x, y, width, height);
+            } else if (health > 29) {
+                batch.draw(imageBroken2,x,y,width,height);
+            } else {
+                batch.draw(imageBroken3,x,y,width,height);
+            }
+        }
     }
 
     private void destroyThis(Array<Particle> particle1s, Array<Item> items) {
@@ -89,7 +179,10 @@ public class FlyBossHeart extends Enemy implements Boss {
 
 
     public void changeHealth(int addToHealth) {
-        health += addToHealth;
+
+        if (!isInvincible) {
+            health += addToHealth;
+        }
     }
 
     public boolean getDestroyed() {

@@ -11,6 +11,9 @@ import java.util.Random;
  * Created by kyle on 9/16/2015.
  */
 public class Roboto1 extends Enemy {
+
+    public static final int DIFFICULTY_POINTS = 40;
+
     boolean facingRight = false; // if facing = false player is facing left, if facing = true player = facing right
     int x = 0;
     int y = 0;
@@ -22,7 +25,34 @@ public class Roboto1 extends Enemy {
     boolean destroyed = false;
     boolean flying = false;
 
-    Texture image = new Texture("robot1.png");
+    Texture image = new Texture("SPA/Enemy/slime2/1.png");
+
+    Texture flyingImage1 = new Texture("SPA/Enemy/Bat/Go/1.png");
+    Texture flyingImage2 = new Texture("SPA/Enemy/Bat/Go/2.png");
+
+    Texture[] groundImages = new Texture[5];
+    Texture groundImage1 = new Texture("SPA/Enemy/Slime/GO/1.png");
+    Texture groundImage2 = new Texture("SPA/Enemy/Slime/GO/2.png");
+    Texture groundImage3 = new Texture("SPA/Enemy/Slime/GO/3.png");
+    Texture groundImage4 = new Texture("SPA/Enemy/Slime/GO/4.png");
+    Texture groundImage5 = new Texture("SPA/Enemy/Slime/GO/5.png");
+
+    int currGroundImage;
+    int timeToNextGroundImage;
+    int maxTimeToNextGroundImage = 5;
+
+    boolean canHop;
+    int timeUntilCanHop;
+    int maxTimeUntilCanHop = 50;
+
+
+    int flyingTimeToNextImage;
+    int flyingMaxTimeToNextImage = 8;
+    int currFlyingImage;
+
+    boolean canFlap = false;
+    int timeUntilCanFlap;
+    int maxTimeUntilCanFlap = 22;
 
 
     boolean turnRectCollided;
@@ -38,7 +68,7 @@ public class Roboto1 extends Enemy {
 
     int xDist; // distance from block to character x plane
     int yDist; // distance from block to character y plane
-    int drawDist = 500; // max distance from player that this should still be drawn and updated
+    static final int drawDist = 500; // max distance from player that this should still be drawn and updated
     boolean isActive; // boolean to tell whether it is too far away and should be drawn
 
 
@@ -46,8 +76,36 @@ public class Roboto1 extends Enemy {
     Boolean touchingCeiling = false;
     Rectangle rect = new Rectangle();
 
-    public Roboto1() {
+    public Roboto1(int x, int y, boolean isFlying) {
         health = 30;
+        this.x = x;
+        this.y = y;
+
+        flyingTimeToNextImage = flyingMaxTimeToNextImage;
+        currFlyingImage = 0;
+        this.flying = isFlying;
+
+        groundImages[0] = groundImage1;
+        groundImages[1] = groundImage2;
+        groundImages[2] = groundImage3;
+        groundImages[3] = groundImage4;
+        groundImages[4] = groundImage5;
+
+        currGroundImage = 0;
+        timeToNextGroundImage = maxTimeToNextGroundImage;
+
+        canHop = false;
+        timeUntilCanHop = maxTimeUntilCanHop;
+
+
+
+        if (!isFlying) {
+            this.width = 32;
+            this.height = 32;
+        } else {
+            this.width = 32;
+            this.height = 32;
+        }
 
     }
 
@@ -92,9 +150,18 @@ public class Roboto1 extends Enemy {
 
 
             if (!flying) {
-                moveGroundRobot(playerX);
+                moveGroundRobot(playerX, playerY);
             } else {
-                moveFlyingRobot(playerX);
+                flyingTimeToNextImage --;
+                if (flyingTimeToNextImage <= 0) {
+                    flyingTimeToNextImage = flyingMaxTimeToNextImage;
+                    if (currFlyingImage == 0) {
+                        currFlyingImage = 1;
+                    } else {
+                        currFlyingImage = 0;
+                    }
+                }
+                moveFlyingRobot(playerX, playerY);
             }
 
             if (health <= 0) {
@@ -118,11 +185,7 @@ public class Roboto1 extends Enemy {
             if (!flying) {
                 if (velY < 15) velY -= .3;
             } else {
-                if (playerY > this.y) velY += .2;
-                if (playerY < this.y) velY -= .2;
 
-                if (velY > 5) velY = 5;
-                if (velY < -5) velY = -5;
             }
 
 
@@ -146,26 +209,43 @@ public class Roboto1 extends Enemy {
 
     public void draw(SpriteBatch batch) {
 
-        batch.draw(image,x,y,width,height, 0, 0, 32, 32, !facingRight, false);
+
+        if (!flying) {
+            if (touchingGround) {
+                batch.draw(groundImages[currGroundImage], x,y,width,height,0,0,16,16,facingRight, false);
+            } else {
+                batch.draw(groundImages[2], x,y,width,height,0,0,16,16,facingRight, false);
+            }
+
+        } else {
+            if (currFlyingImage == 0) {
+                batch.draw(flyingImage1, x, y, width, height, 0, 0, 16, 16, !facingRight, false);
+            } else {
+                batch.draw(flyingImage2, x, y, width, height, 0, 0, 16, 16, !facingRight, false);
+            }
+        }
 
     }
 
     public void destroyEnemy(Array<Particle> particle1s, Array<Item> items) {
 
+        if (random.nextInt(2) == 0) {
+            HealthCrystal hp = new HealthCrystal(this.x,
+                    this.y,
+                    -velX + random.nextInt(3) - 1,
+                    3 + random.nextInt(3) - 1,
+                    10, 12);
+            items.add(hp);
+        }
 
-        HealthCrystal hp = new HealthCrystal(this.x,
-                this.y,
-                -velX + random.nextInt(3) - 1,
-                3 + random.nextInt(3) - 1,
-                10,12);
-        items.add(hp);
-
-        ManaCrystal mp = new ManaCrystal(this.x,
-                this.y,
-                -velX + random.nextInt(3) - 1,
-                3 + random.nextInt(3) - 1,
-                10,12);
-        items.add(mp);
+        if (random.nextInt(2) == 0) {
+            ManaCrystal mp = new ManaCrystal(this.x,
+                    this.y,
+                    -velX + random.nextInt(3) - 1,
+                    3 + random.nextInt(3) - 1,
+                    10, 12);
+            items.add(mp);
+        }
 
         int numCoins = random.nextInt(3); // spawn between 0 and 2 coins
 
@@ -192,21 +272,87 @@ public class Roboto1 extends Enemy {
 
 
 
-    private void moveFlyingRobot(int playerX) {
-        if (playerX > this.x) velX += .4;
-        else if (playerX < this.x) velX -= .4;
+    private void moveFlyingRobot(int playerX, int playerY) {
+        if (playerX > this.x) velX += .2;
+        else if (playerX < this.x) velX -= .2;
 
-        if (velX > 2.5) velX = 2.5f;
-        else if (velX < -2.5) velX = -2.5f;
+        if (velX > 2) velX = 2f;
+        else if (velX < -2) velX = -2f;
+
+        if (!canFlap) {
+            timeUntilCanFlap --;
+            if (timeUntilCanFlap <= 0) {
+                canFlap = true;
+            }
+        }
+        if (playerY >= this.y) {
+            if (canFlap) {
+                velY = 4;
+                canFlap = false;
+                timeUntilCanFlap = maxTimeUntilCanFlap;
+            }
+        }
+        velY -= 0.2;
+
+
+        if (velY > 5) velY = 5;
+        if (velY < -5) velY = -5;
     }
 
     public boolean getDestroyed() {
         return destroyed;
     }
 
-    private void moveGroundRobot(int playerX) {
-        if (facingRight) velX += 1;
-        else velX -= 1;
+    private void moveGroundRobot(int playerX, int playerY) {
+            if (touchingGround) {
+                if (velX > 0) {
+                    velX -= 2;
+                    if (velX < 0) {
+                        velX = 0;
+                    }
+                } else if (velX < 0) {
+                    velX += 2;
+                    if (velX > 0) {
+                        velX = 0;
+                    }
+                }
+                timeToNextGroundImage--;
+                if (timeToNextGroundImage <= 0) {
+                    timeToNextGroundImage = maxTimeToNextGroundImage;
+                    currGroundImage++;
+                    if (currGroundImage > 4) {
+                        currGroundImage = 0;
+                    }
+                }
+            } else {
+                currGroundImage = 0;
+                timeToNextGroundImage = maxTimeToNextGroundImage;
+                if (velX == 0) {
+                    if (facingRight) {
+                        velX = 1f;
+                    } else {
+                        velX = -1f;
+                    }
+                }
+            }
+
+            if (canHop && touchingGround) {
+                velY = 5;
+                if (playerX > this.x) {
+                    velX = 7;
+                } else {
+                    velX = -7;
+                }
+                canHop = false;
+                timeUntilCanHop = maxTimeUntilCanHop;
+            } else {
+                timeUntilCanHop--;
+                if (timeUntilCanHop < 0) {
+                    timeUntilCanHop = maxTimeUntilCanHop;
+                    canHop = true;
+                }
+            }
+
 
 
         if (velX > 3) velX = 3;
@@ -215,6 +361,7 @@ public class Roboto1 extends Enemy {
 
 
     public void checkTilesHit(Array<BaseTile> baseTiles) {
+        touchingGround = false;
         for (BaseTile tile : baseTiles) {
             if (tile.isActive) {
                 if (rect.overlaps(tile.rect)) {
@@ -244,7 +391,7 @@ public class Roboto1 extends Enemy {
                     if (directionLeastPassed.equals("Bottom")) {
                         rect.y = rect2Top;
                         velY = 0;
-                        canJump = true;
+                        touchingGround = true;
                     } else if (directionLeastPassed.equals("Top")) {
                         rect.y = rect2Bot - rect.height;
                         velY = 0;

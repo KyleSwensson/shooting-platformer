@@ -35,7 +35,32 @@ public class Pickup {
         this.y = y;
         this.height = height;
         this.width = width;
+
         pickupType = random.nextInt(5) + 2;
+
+
+
+        framesActive = 0;
+        this.floatUpnDown = true;
+    }
+
+
+
+    public Pickup(float x, float y, int width, int height, int[] playerWeps) {
+        this.x = x;
+        this.y = y;
+        this.height = height;
+        this.width = width;
+
+        pickupType = random.nextInt(5) + 2;
+
+        if (!playerHasAllWeps(playerWeps)) {
+            while (playerHasWep(playerWeps, pickupType)) {
+                pickupType = random.nextInt(5) + 2;
+            }
+        }
+
+
         framesActive = 0;
         this.floatUpnDown = true;
     }
@@ -50,6 +75,41 @@ public class Pickup {
         this.floatUpnDown = floatUpnDown;
     }
 
+    public Pickup(float x, float y, int width, int height,  int specialWepToSpawn) {
+        this.x = x;
+        this.y = y;
+        this.height = height;
+        this.width = width;
+        pickupType = specialWepToSpawn;
+        framesActive = 0;
+        this.floatUpnDown = floatUpnDown;
+    }
+
+    public boolean playerHasWep(int[] playerWeps, int weaponNum) {
+        for (int i = 0; i< playerWeps.length; i++) {
+            if (playerWeps[i] == weaponNum) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public boolean playerHasAllWeps(int[] playerWeps) {
+        int numWeps = 0;
+        for (int i = 0; i < playerWeps.length; i++) {
+            if (playerWeps[i] != 0) {
+                numWeps++;
+            }
+        }
+
+        if (numWeps >= 6) {
+            return  true;
+        } else {
+            return false;
+        }
+    }
+
     public void draw(SpriteBatch batch) {
         switch(pickupType) {
             case 2:
@@ -62,10 +122,10 @@ public class Pickup {
                 batch.draw(flameThrowerTexture,x,y,width,height);
                 break;
             case 5:
-                batch.draw(grenadeTexture,x,y,width,height);
+                batch.draw(rocketLaunchTexture,x,y,width,height);
                 break;
             case 6:
-                batch.draw(rocketLaunchTexture,x,y,width,height);
+                batch.draw(grenadeTexture,x,y,width,height);
                 break;
             default:
                 break;

@@ -26,6 +26,8 @@ public class BossFly extends Enemy {
     int orbitXStrength;
     int orbitYStrength;
 
+    boolean isInvincible; // starts true, becomes false when all 4 sub crystals stop being alive
+
     float speed; // speed at which thing orbits
 
     Vector2 direction = new Vector2();
@@ -52,6 +54,7 @@ public class BossFly extends Enemy {
         speed = (random.nextInt(10) + 4) / 3;
 
 
+        isInvincible = true;
         height = 18;
     }
 
@@ -68,7 +71,10 @@ public class BossFly extends Enemy {
     }
 
     public void changeHealth(int addToHealth) {
-        health += addToHealth;
+
+        if (!isInvincible) {
+            health += addToHealth;
+        }
     }
     public void draw(SpriteBatch batch) {
         batch.draw(images[animImage], x, y, width/2,height/2, width, height,1, 1, angleDegrees, 0, 0 , width/2, height/2, false, false);

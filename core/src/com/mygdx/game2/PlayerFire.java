@@ -9,6 +9,7 @@ import com.badlogic.gdx.utils.Array;
  */
 public class PlayerFire extends PlayerBullet {
     public Texture texture = new Texture("fireParticle.png");
+    int damage = 1;
     public PlayerFire () {
         bulletType = "Flame";
         //texture = new Texture("fireParticle.png");
@@ -29,14 +30,14 @@ public class PlayerFire extends PlayerBullet {
 
 
         for (Enemy enemy : enemies) {
-            if (rect.overlaps(enemy.getRect())) {
-                enemy.changeHealth(-4);
+            if (rect.overlaps(enemy.getRect()) && enemy.isHittable) {
+                enemy.changeHealth(-damage );
 
                 destroyed = true;
                 EnemyHitSquareAnimation anim = new EnemyHitSquareAnimation();
                 anim.x = x;
                 anim.y = y;
-                anims.add(anim);EnemyHitText hitText = new EnemyHitText(x,y,4);
+                anims.add(anim);EnemyHitText hitText = new EnemyHitText((int)x,(int)y,damage);
                 anims.add(hitText);
             }
         }

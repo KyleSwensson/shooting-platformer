@@ -10,7 +10,15 @@ import com.badlogic.gdx.utils.Array;
  */
 public class BigAuraBullet extends EnemyBullet {
 
-    Texture image = new Texture("enemyBigBullet.png");
+    Texture image1 = new Texture("SPA/Enemy/shootingGroundMan/1.png");
+    Texture image2 = new Texture("SPA/Enemy/shootingGroundMan/2.png");
+    Texture image3 = new Texture("SPA/Enemy/shootingGroundMan/3.png");
+    Texture[] chargingImages;
+    Texture targetedImage = new Texture("SPA/Enemy/shootingGroundMan/targeted/1.png");
+
+    int currFrame;
+    int timeToNextFrame;
+    int maxTimeToNextFrame = 7;
 
     int aliveTime = 0;
     int targetTime = 30; // if alive time is less than this velY = +2;
@@ -26,6 +34,9 @@ public class BigAuraBullet extends EnemyBullet {
         width = 16;
         height = 16;
         velY = 2;
+        currFrame = 0;
+        timeToNextFrame = maxTimeToNextFrame;
+        chargingImages = new Texture[]{image1,image2,image3,image2};
     }
 
     public Rectangle getRect() {
@@ -36,8 +47,16 @@ public class BigAuraBullet extends EnemyBullet {
         this.destroyed = destroyed;
     }
 
-    public void update(Array<BaseTile> baseTiles, Rectangle playerRect) {
-        super.update(baseTiles, playerRect);
+    public boolean getIsDangerous() {
+        return this.isDangerous;
+    }
+
+    public boolean getDestroyOnHit() {
+        return this.destroyOnHit;
+    }
+
+    public void update(Array<BaseTile> baseTiles, Rectangle playerRect, Array<Particle> particles, Array<EnemyBullet> enemyBullets) {
+        super.update(baseTiles, playerRect, particles, enemyBullets);
 
         aliveTime ++;
         if (aliveTime > maxAliveTime) {
@@ -64,10 +83,25 @@ public class BigAuraBullet extends EnemyBullet {
         }
 
 
+        timeToNextFrame--;
+        if (timeToNextFrame <= 0) {
+            timeToNextFrame = maxTimeToNextFrame;
+            currFrame++;
+            if (currFrame > 3) {
+                currFrame -= 4;
+            }
+        }
+
+
 
     }
 
-    public void draw(SpriteBatch batch) {
-        batch.draw(image,x,y,width,height);
+    public void draw(SpriteBatch batch)
+    {
+        if (aliveTime < targetTime) {
+            batch.draw(chargingImages[currFrame], x, y, width, height);
+        } else {
+            batch.draw(targetedImage,x,y,width,height,0,0,11,11,(velX > 0), false);
+        }
     }
 }

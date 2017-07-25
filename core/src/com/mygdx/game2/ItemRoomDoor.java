@@ -14,6 +14,7 @@ public class ItemRoomDoor extends Item {
     String type = "itemRoomDoor";
     Texture doorImage = new Texture("SPA/tile-map/exitDoor.png");
     Texture labelImage = new Texture("SPA/tile-map/crownBG.png");
+    Texture specialLabelImage = new Texture("SPA/tile-map/upArrowBG.png");
     boolean intersectingPlayer = false;
 
     int xDist; // distance from block to character x plane
@@ -30,6 +31,19 @@ public class ItemRoomDoor extends Item {
         rect.y = y;
         rect.width = width;
         rect.height = height;
+    }
+
+    public ItemRoomDoor(float x, float y, float velX, float velY, int width, int height, boolean isSpecial) {
+        super(x,y,velX,velY,width,height);
+
+        rect.x = x;
+        rect.y = y;
+        rect.width = width;
+        rect.height = height;
+
+        if (isSpecial) {
+            labelImage = specialLabelImage;
+        }
     }
 
     public  String getType() {

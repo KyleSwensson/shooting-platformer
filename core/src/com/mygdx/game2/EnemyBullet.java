@@ -17,11 +17,17 @@ public abstract class EnemyBullet extends Bullet {
     boolean enemyBullet = true;
     Texture image;
 
-    public void update(Array<BaseTile> baseTiles, Rectangle playerRect) {
+    boolean destroyOnHit = true;
+    boolean isDangerous = true;
+
+    public void update(Array<BaseTile> baseTiles, Rectangle playerRect, Array<Particle> particles, Array<EnemyBullet> enemyBullets) {
+
         this.x += velX;
         this.y += velY;
         timeActive++;
         if (timeActive > maxTimeActive) destroyed = true;
+//        isDangerous = true;
+//        destroyOnHit = true;
 
 
         rect.x = x;
@@ -40,7 +46,15 @@ public abstract class EnemyBullet extends Bullet {
         }
     }
 
+    public boolean getDestroyed() {
+        return destroyed;
+    }
+
     public abstract Rectangle getRect();
+
+    public abstract boolean getDestroyOnHit();
+
+    public abstract boolean getIsDangerous();
 
     public abstract void setDestroyed(boolean destroyed);
 

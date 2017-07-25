@@ -21,11 +21,12 @@ public class FlyWaveParticle extends Particle {
 
     }
 
-    public void update(Array<BaseTile> baseTiles, Array<Roboto1> robot1s, int playerX, int playerY) {
+    public void update(Array<Particle> particles,Array<BaseTile> baseTiles, Array<Roboto1> robot1s, int playerX, int playerY) {
         velY = -1f;
         velX = (float)Math.sin(startPos) * 2.5f ;
         startPos += .1;
-        super.update(baseTiles,robot1s,playerX, playerY);
+        super.update(particles, baseTiles,robot1s,playerX, playerY);
+
 
     }
 

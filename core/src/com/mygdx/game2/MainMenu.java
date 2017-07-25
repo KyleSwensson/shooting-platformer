@@ -13,6 +13,7 @@ public class MainMenu extends GenericMenu {
     OptionsButton optionsButton;
     UnlocksButton unlocksButton;
     MainExitButton exitButton;
+    SlimeMenuPointer menuPointer;
 
     //tells the menu which option is currently selected so it knows what to do when you press enter
     //0= play, 1 = settings, 2 = unlocks and trophies
@@ -23,6 +24,7 @@ public class MainMenu extends GenericMenu {
         optionsButton = new OptionsButton(50,-100);
         unlocksButton = new UnlocksButton(230,-100);
         exitButton = new MainExitButton(-310, -107);
+        menuPointer = new SlimeMenuPointer();
         this.width = width;
         this.height = height;
         this.x = -(width/2);
@@ -30,9 +32,14 @@ public class MainMenu extends GenericMenu {
         selectedOption = 0;
     }
 
+    public void update() {
+        menuPointer.update();
+    }
+
 
     public void draw(SpriteBatch batch) {
         batch.draw(BGTexture,x,y,width,height);
+
         switch (selectedOption) {
             case 0:
                 playButton.drawSelected(batch);
@@ -65,12 +72,15 @@ public class MainMenu extends GenericMenu {
 
         }
 
+        menuPointer.draw(batch);
+
     }
 
     public void alterSelected(int change) {
         selectedOption += change;
         if (selectedOption < 0) selectedOption += 4;
         else if (selectedOption > 3) selectedOption -= 4;
+        menuPointer.setOption(selectedOption);
     }
 
 }

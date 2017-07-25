@@ -43,7 +43,7 @@ public class Explosion extends PlayerBullet {
         }
         if (frameCount == 1 && animImage == 0) {
             for (Enemy enemy : enemies) {
-                if (rect.overlaps(enemy.getRect())) {
+                if (rect.overlaps(enemy.getRect()) && enemy.isHittable) {
                     enemy.changeHealth(-20);
                     EnemyHitText hitText = new EnemyHitText((int)enemy.x,(int)enemy.y,20);
                     anims.add(hitText);

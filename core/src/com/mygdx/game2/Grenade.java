@@ -32,9 +32,9 @@ public class Grenade extends PlayerBullet {
     public void update(Array<PlayerBullet> playerBullets,Array<BaseTile> baseTiles, Array<Enemy> enemies , Array<Animation> anims, Array<Particle> particles) {
         super.update(playerBullets,baseTiles, enemies, anims, particles);
         for (Enemy enemy : enemies) {
-            if (rect.overlaps(enemy.getRect())) {
+            if (rect.overlaps(enemy.getRect()) && enemy.isHittable) {
                 enemy.changeHealth(-4);
-                EnemyHitText hitText = new EnemyHitText(x,y,4);
+                EnemyHitText hitText = new EnemyHitText((int)x,(int)y,4);
                 anims.add(hitText);
                 velX = enemy.velX + (float)(velX * -.5);
                 velY = enemy.velY + (float)(velX * -.5);

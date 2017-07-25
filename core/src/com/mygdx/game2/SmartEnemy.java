@@ -12,12 +12,36 @@ import java.util.Random;
  */
 public class SmartEnemy extends Enemy {
 
+    public static final int DIFFICULTY_POINTS = 40;
+
     int xDist; // distance from block to character x plane
     int yDist; // distance from block to character y plane
     int drawDist = 500; // max distance from player that this should still be drawn and updated
     boolean isActive; // boolean to tell whether it is too far away and should be drawn
 
     Texture image = new Texture("robot1fly.png");
+
+
+    Texture standingImage = new Texture("SPA/Enemy/Skeleton/Idle/1.png");
+    Texture fallingImage = new Texture("SPA/Enemy/Skeleton/Fall/Fall.png");
+    Texture jumpingImage = new Texture("SPA/Enemy/Skeleton/Jump/Jump.png");
+
+    Texture[] runningImages = new Texture[10];
+    Texture run1 = new Texture("SPA/Enemy/Skeleton/Run/1.png");
+    Texture run2 = new Texture("SPA/Enemy/Skeleton/Run/2.png");
+    Texture run3 = new Texture("SPA/Enemy/Skeleton/Run/3.png");
+    Texture run4 = new Texture("SPA/Enemy/Skeleton/Run/4.png");
+    Texture run5 = new Texture("SPA/Enemy/Skeleton/Run/5.png");
+    Texture run6 = new Texture("SPA/Enemy/Skeleton/Run/6.png");
+    Texture run7 = new Texture("SPA/Enemy/Skeleton/Run/7.png");
+    Texture run8 = new Texture("SPA/Enemy/Skeleton/Run/8.png");
+    Texture run9 = new Texture("SPA/Enemy/Skeleton/Run/9.png");
+    Texture run10 = new Texture("SPA/Enemy/Skeleton/Run/10.png");
+
+    int timeUntilNextMoveImage = 0;
+    int maxTimeUntilNextMoveImage = 5;
+
+    int currMoveImage = 0;
 
     int health = 30;
 
@@ -30,6 +54,8 @@ public class SmartEnemy extends Enemy {
     Random random = new Random();
 
     boolean facingRight = false;
+
+    boolean touchingGround = false;
 
     boolean onEdge = false; // var tells if enemy is on edge, if it is it will not move forward but continue facing towards the player
 
@@ -50,6 +76,25 @@ public class SmartEnemy extends Enemy {
     Rectangle jumpHeightRect = new Rectangle(0,0,25,25); //rectangle that is jump height above jump rect which tells the robot if there is a place
     // to land when it jumps
 
+
+    public SmartEnemy(int x, int y) {
+        timeUntilNextMoveImage = maxTimeUntilNextMoveImage;
+        this.x = x;
+        this.y = y;
+        this.width = 26;
+        this.height = 36;
+
+        runningImages[0] = run1;
+        runningImages[1] = run2;
+        runningImages[2] = run3;
+        runningImages[3] = run4;
+        runningImages[4] = run5;
+        runningImages[5] = run6;
+        runningImages[6] = run7;
+        runningImages[7] = run8;
+        runningImages[8] = run9;
+        runningImages[9] = run10;
+    }
 
 
     public void jump() {
@@ -148,19 +193,23 @@ public class SmartEnemy extends Enemy {
     public void destroyEnemy(Array<Particle> particle1s, Array<Item> items) {
 
 
-        HealthCrystal hp = new HealthCrystal(this.x,
-                this.y,
-                -velX + random.nextInt(3) - 1,
-                3 + random.nextInt(3) - 1,
-                10,12);
-        items.add(hp);
+        if (random.nextInt(2) == 0) {
+            HealthCrystal hp = new HealthCrystal(this.x,
+                    this.y,
+                    -velX + random.nextInt(3) - 1,
+                    3 + random.nextInt(3) - 1,
+                    10, 12);
+            items.add(hp);
+        }
 
-        ManaCrystal mp = new ManaCrystal(this.x,
-                this.y,
-                -velX + random.nextInt(3) - 1,
-                3 + random.nextInt(3) - 1,
-                10,12);
-        items.add(mp);
+        if (random.nextInt(2) == 0) {
+            ManaCrystal mp = new ManaCrystal(this.x,
+                    this.y,
+                    -velX + random.nextInt(3) - 1,
+                    3 + random.nextInt(3) - 1,
+                    10, 12);
+            items.add(mp);
+        }
 
         int numCoins = random.nextInt(3); // spawn between 0 and 2 coins
 
@@ -197,6 +246,7 @@ public class SmartEnemy extends Enemy {
 
 
     public void checkTilesHit(Array<BaseTile> baseTiles) {
+        touchingGround = false;
         for (BaseTile tile : baseTiles) {
             if (tile.isActive) {
                 if (rect.overlaps(tile.rect)) {
@@ -227,6 +277,7 @@ public class SmartEnemy extends Enemy {
                         rect.y = rect2Top;
                         velY = 0;
                         canJump = true;
+                        touchingGround = true;
                     } else if (directionLeastPassed.equals("Top")) {
                         rect.y = rect2Bot - rect.height;
                         velY = 0;
@@ -260,6 +311,20 @@ public class SmartEnemy extends Enemy {
             if (velX > 3) velX = 3;
             else if (velX < -3) velX = -3;
 
+            if (Math.abs(velX) >= 1) {
+                timeUntilNextMoveImage--;
+                if (timeUntilNextMoveImage <= 0) {
+                    timeUntilNextMoveImage = maxTimeUntilNextMoveImage;
+                    currMoveImage++;
+                    if (currMoveImage > 9) {
+                        currMoveImage = 0;
+                    }
+                }
+            } else {
+                currMoveImage = 0;
+                timeUntilNextMoveImage = maxTimeUntilNextMoveImage;
+            }
+
 
 
 
@@ -272,7 +337,18 @@ public class SmartEnemy extends Enemy {
     }
 
     public void draw(SpriteBatch batch) {
-        batch.draw(image,x,y,width,height, 0, 0, 32, 32, !facingRight, false);
-
+        if (touchingGround) {
+            if (Math.abs(velX) < 1) {
+                batch.draw(standingImage, x, y, width, height, 0, 0, 13, 18, !facingRight, false);
+            } else {
+                batch.draw(runningImages[currMoveImage], x, y, width, height, 0, 0, 13, 18, !facingRight, false);
+            }
+        } else {
+            if (velY > 0) {
+                batch.draw(jumpingImage, x,y,width,height, 0, 0, 13,18, !facingRight, false);
+            } else {
+                batch.draw(fallingImage, x, y, width, height, 0, 0, 13, 18, !facingRight, false);
+            }
+        }
     }
 }
