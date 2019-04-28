@@ -23,6 +23,8 @@ public class FlyBossHeart extends Enemy implements Boss {
     Texture imageBroken2 = new Texture("crystalBroken2.png");
     Texture imageBroken3 = new Texture("crystalBroken3.png");
 
+    public static final int MAX_HEALTH = 40;
+
 
     int numAliveSubCrystals;
 
@@ -38,7 +40,7 @@ public class FlyBossHeart extends Enemy implements Boss {
 
     public FlyBossHeart(int x, int y) {
 
-        health = 40;
+        health = MAX_HEALTH;
         width = 106;
         height = 102;
 
@@ -179,10 +181,18 @@ public class FlyBossHeart extends Enemy implements Boss {
 
 
     public void changeHealth(int addToHealth) {
-
         if (!isInvincible) {
             health += addToHealth;
         }
+    }
+
+    public float getHealthPercentage() {
+        float totalCurrentHealth = health;
+        for (SubCrystalBoss subCrystal : subCrystals) {
+            totalCurrentHealth += subCrystal.health;
+        }
+        float totalMaxHealth = MAX_HEALTH + (SubCrystalBoss.MAX_HEALTH * 4);
+        return (totalCurrentHealth / totalMaxHealth) * 100;
     }
 
     public boolean getDestroyed() {

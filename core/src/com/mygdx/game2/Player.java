@@ -61,7 +61,7 @@ public class Player extends Character {
     int numCoins = 0; // number of coins player holds
 
     String drawType = "Idle"; // tells the game what animation type to have the player be in
-    // types that exist are Jumping, Falling, Running, Idle, WallCling
+    // types that exist are Jump, Fall, Run, Idle, WallCling, Roll
 
     int runningImage = 0; // which image the character is on in the running animation
     int runningTimer = 0; // timer counting up to frameChangeTime
@@ -123,7 +123,7 @@ public class Player extends Character {
     Boolean touchingLeftWall = false;
     int leftWallFrames = 0; // if they hit 0 touchingLeftWall turns false
     Boolean touchingRightWall = false;
-    int rightWallFrames = 0; // if they hit 0 touchingLeftWall turns false
+    int rightWallFrames = 0; // if they hit 0 touchingRightWall turns false
     Rectangle rect = new Rectangle();
 
     boolean isRolling;
@@ -377,6 +377,7 @@ public class Player extends Character {
                         y += 2;
                         velY = 7.5f;
                         velX = 4f;
+                        touchingLeftWall = false;
                         for (int i = 0; i < 5; i++) {
                             DustParticle part = new DustParticle((int)x + (i * (width / 5)), (int)y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
                             particle1s.add(part);
@@ -386,6 +387,7 @@ public class Player extends Character {
                         y += 2;
                         velY = 7.5f;
                         velX = -4f;
+                        touchingRightWall = false;
                         for (int i = 0; i < 5; i++) {
                             DustParticle part = new DustParticle((int)x + (i * (width / 5)), (int)y + (random.nextInt(10) - 2), 0, 0, "dust", 100);
                             particle1s.add(part);

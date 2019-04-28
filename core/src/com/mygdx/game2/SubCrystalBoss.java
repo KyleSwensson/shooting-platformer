@@ -10,6 +10,8 @@ import com.badlogic.gdx.utils.Array;
  */
 public class SubCrystalBoss extends Enemy {
 
+    public static final int MAX_HEALTH = 150;
+
 
     int xDist; // distance from block to character x plane
     int yDist; // distance from block to character y plane
@@ -50,7 +52,7 @@ public class SubCrystalBoss extends Enemy {
     public SubCrystalBoss(int x, int y, int cornerNumber) {
 
         this.cornerNumber = cornerNumber;
-        health = 150;
+        health = MAX_HEALTH;
         width = 64;
         height = 64;
 

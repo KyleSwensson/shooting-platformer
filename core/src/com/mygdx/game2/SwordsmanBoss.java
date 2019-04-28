@@ -19,6 +19,7 @@ public class SwordsmanBoss extends Enemy implements Boss {
     float velX;
     float velY;
     int health;
+    static final int MAX_HEALTH = 350;
     boolean destroyed = false;
     boolean flying = false;
 
@@ -131,7 +132,7 @@ public class SwordsmanBoss extends Enemy implements Boss {
 
 
     public SwordsmanBoss(int x, int y) {
-        health = 350;
+        health = MAX_HEALTH;
         this.x = x;
         this.y = y;
         this.width = 24;
@@ -210,6 +211,10 @@ public class SwordsmanBoss extends Enemy implements Boss {
         health += addToHealth;
     }
 
+    public float getHealthPercentage() {
+        return ((float)health / (float)MAX_HEALTH) * 100;
+    }
+
     public void update(Array<Enemy> enemies, Array<EnemyBullet> enemyBullets, Array<PlayerBullet> bullets,Array<Item> items, Array<BaseTile> baseTiles, Array<Particle> particle1s, int playerX, int playerY) {
         xDist = Math.abs(playerX - this.x);
         yDist = Math.abs(playerY - this.y);
@@ -235,13 +240,7 @@ public class SwordsmanBoss extends Enemy implements Boss {
             currMoveImage = 0;
         }
 
-
-
-
-
         if (isActive) {
-
-
             checkIsAttacking();
             checkIsPreparingToAttack();
 
@@ -250,24 +249,16 @@ public class SwordsmanBoss extends Enemy implements Boss {
             } else {
                 velX = 0;
             }
-
-
-
             handleAttacks(enemyBullets);
-
             if (health <= 0) {
                 destroyThis(particle1s, items);
             }
-
             if (velY < 15)  {
                 velY -= .3;
             }
             if (preparingAW || isAirWalking || preparingAttacksArray[4] || usingAttacksArray[4] || usingAttacksArray[2]) {
                 velY = 0;
             }
-
-
-
             if (velX > 0) facingRight = true;
             else if (velX < 0) facingRight = false;
 
@@ -278,11 +269,7 @@ public class SwordsmanBoss extends Enemy implements Boss {
             rect.y = y;
             rect.width = width;
             rect.height = height;
-
-
             checkTilesHit(baseTiles);
-
-
         }
     }
 
@@ -378,7 +365,6 @@ public class SwordsmanBoss extends Enemy implements Boss {
             System.out.println("on making shot");
             SBSwordSlash attack = new SBSwordSlash(this.x,this.y, !facingRight, false);
             enemyBullets.add(attack);
-
         }
     }
 
@@ -407,7 +393,6 @@ public class SwordsmanBoss extends Enemy implements Boss {
         }
         if (usingAttackTimeArray[2] == 23) {
             this.isVisible = true;
-
         }
     }
 

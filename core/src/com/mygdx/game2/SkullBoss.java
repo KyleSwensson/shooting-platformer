@@ -45,14 +45,16 @@ public class SkullBoss extends Enemy implements Boss {
     int attackPrepareTime = 0;
     final static int[] attackTimes = new int[]{60, 60, 60};
     final static int[] attackPrepareTimes = new int[]{60, 60, 60};
+    public static final int MAX_HEALTH = 350;
 
 
     public SkullBoss(int x, int y) {
-        health = 350;
+        health = MAX_HEALTH;
         this.x = x;
         this.y = y;
         this.width = 56;
         this.height = 56;
+        enemyType = "SkullBoss";
 
     }
 
@@ -117,6 +119,10 @@ public class SkullBoss extends Enemy implements Boss {
 
 
         }
+    }
+
+    public float getHealthPercentage() {
+        return ((float)health / (float)MAX_HEALTH)*100;
     }
 
     public Rectangle getRect() {
